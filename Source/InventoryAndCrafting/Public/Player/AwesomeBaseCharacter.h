@@ -10,6 +10,8 @@
 class UCameraComponent;
 class USpringArmComponent;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemPickedup, const TArray<FSlot>&);
+
 UCLASS()
 class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter
 {
@@ -17,6 +19,10 @@ class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter
 
 public:
     AAwesomeBaseCharacter();
+
+    FOnItemPickedup OnItemPickedup;
+
+    TArray<FSlot> GetSlots() const { return Slots; };
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

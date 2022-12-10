@@ -82,6 +82,7 @@ void AAwesomeBaseCharacter::TakeItem()
 void AAwesomeBaseCharacter::AddItem(const FSlot& Item)
 {
     Slots.Add(Item);
+    OnItemPickedup.Broadcast(Slots);
 
     for (const auto& element : Slots)
     {

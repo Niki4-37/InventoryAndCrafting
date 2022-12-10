@@ -1,0 +1,37 @@
+Language : Cpp
+BasedOnStyle : Microsoft
+AccessModifierOffset : '-4'
+AlignAfterOpenBracket : Align
+AlignOperands : Align
+AllowShortBlocksOnASingleLine : false
+AllowShortFunctionsOnASingleLine : Inline
+AllowShortIfStatementsOnASingleLine : true
+AllowShortCaseLabelsOnASingleLine : true
+AlwaysBreakTemplateDeclarations : Yes
+BinPackParameters : false
+BreakBeforeBraces : Allman
+BreakBeforeTernaryOperators : false
+ColumnLimit: '200'
+EmptyLineAfterAccessModifier : Never
+EmptyLineBeforeAccessModifier : Always
+IndentCaseLabels : true
+PointerAlignment : Left
+ReferenceAlignment : Left
+SortIncludes: false 
+SpacesBeforeTrailingComments : 2
+TabWidth : '4'
+UseTab : Never
+
+
+
+
+
+
+
+
+
+
+
+
+
+

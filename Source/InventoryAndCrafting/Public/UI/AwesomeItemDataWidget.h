@@ -8,6 +8,7 @@
 #include "AwesomeItemDataWidget.generated.h"
 
 class UBorder;
+class UTexture2D;
 /**
  *
  */
@@ -24,6 +25,9 @@ public:
 protected:
     UPROPERTY(meta = (BindWidget))
     UBorder* WidgetBorder;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UTexture2D* EmptyIcon;
 
     FInventoryData InventoryData;
     FSlot Item;

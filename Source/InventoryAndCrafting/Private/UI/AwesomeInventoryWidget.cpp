@@ -22,12 +22,12 @@ void UAwesomeInventoryWidget::OnNewPawn(APawn* NewPawn)
     const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
     if (!Player) return;
 
-    Player->OnItemPickedup.AddUObject(this, &UAwesomeInventoryWidget::OnItemPickedup);
+    Player->OnSlotsChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotsChanged);
 
     UpdateItemSlots(Player->GetSlots());
 }
 
-void UAwesomeInventoryWidget::OnItemPickedup(const TArray<FSlot>& Slots)
+void UAwesomeInventoryWidget::OnSlotsChanged(const TArray<FSlot>& Slots)
 {
     UpdateItemSlots(Slots);
 }
@@ -43,7 +43,7 @@ void UAwesomeInventoryWidget::UpdateItemSlots(const TArray<FSlot>& Slots)
         auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (!ItemDataWidget) continue;
         ItemDataWidget->SetDataFromItem(SlotData);
-        auto GridObject = InventoryItemSlots->AddChildToUniformGrid(ItemDataWidget, SlotIndex / RowsInGrid, SlotIndex % RowsInGrid);
+        auto GridObject = InventoryItemSlots->AddChildToUniformGrid(ItemDataWidget, SlotIndex / SlotsInRow, SlotIndex % SlotsInRow);
         if (!GridObject) continue;
         GridObject->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
         GridObject->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);

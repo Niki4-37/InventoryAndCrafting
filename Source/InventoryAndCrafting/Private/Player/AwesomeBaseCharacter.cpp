@@ -4,6 +4,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Pickup/AwesomePickupMaster.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -24,6 +25,8 @@ AAwesomeBaseCharacter::AAwesomeBaseCharacter()
 void AAwesomeBaseCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    InitEquipment();
 }
 
 void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -36,6 +39,119 @@ void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
     PlayerInputComponent->BindAxis("LookUp", this, &AAwesomeBaseCharacter::AddControllerPitchInput);
 
     PlayerInputComponent->BindAction("TakeItem", IE_Pressed, this, &AAwesomeBaseCharacter::TakeItem);
+}
+
+bool AAwesomeBaseCharacter::FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack)
+{
+    OutSlotIndex = -1;
+    OutAmount = -1;
+    bOutCanStack = false;
+    if (!Slots.Num() || !Item.DataTableRowHandle.DataTable) return false;
+
+    const auto ItemDataPointer = Item.DataTableRowHandle.DataTable->FindRow<FInventoryData>(Item.DataTableRowHandle.RowName, "", false);
+    if (!ItemDataPointer) return false;
+    const auto ItemData = *ItemDataPointer;
+    bOutCanStack = ItemData.bCanStack;
+
+    uint8 SlotIndex{0};
+    for (const auto& SlotData : Slots)
+    {
+        if (!SlotData.DataTableRowHandle.DataTable) continue;
+        const auto SlotItemDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FInventoryData>(SlotData.DataTableRowHandle.RowName, "", false);
+        if (!SlotItemDataPointer) continue;
+        const auto SlotItemData = *SlotItemDataPointer;
+        if (SlotItemData.Name == ItemData.Name)
+        {
+            OutSlotIndex = SlotIndex;
+            OutAmount = SlotData.Amount;
+            return true;
+        }
+        ++SlotIndex;
+    }
+
+    return false;
+}
+
+bool AAwesomeBaseCharacter::FindEmptySlot(uint8& OutSlotIndex)
+{
+    OutSlotIndex = -1;
+    if (!Slots.Num()) return false;
+
+    uint8 SlotIndex{0};
+    for (const auto& SlotData : Slots)
+    {
+        if (!SlotData.Amount)
+        {
+            OutSlotIndex = SlotIndex;
+            return true;
+        }
+        ++SlotIndex;
+    }
+    return false;
+}
+
+bool AAwesomeBaseCharacter::RemoveAmountFromSlotsAtIndex(const uint8 Index, const int32 AmountToRemove)
+{
+    // if (!Slots.IsValidIndex(Index)) return false;
+    // const auto Result = Slots[Index].Amount - AmountToRemove;
+    // Slots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
+    // OnSlotsChanged.Broadcast(Slots);
+    // return true;
+    return UpdateSlotItemData(Index, -AmountToRemove);
+}
+
+bool AAwesomeBaseCharacter::TryAddItemToSlots(const FSlot& Item)
+{
+    uint8 FoundSlotIndex;
+    int32 FoundAmount;
+    bool bCanStack;
+    if (FindStackOfSameItems(Item, FoundSlotIndex, FoundAmount, bCanStack))
+    {
+        if (bCanStack)
+        {
+            return UpdateSlotItemData(FoundSlotIndex, Item.Amount);
+        }
+
+        if (!bCanStack && FindEmptySlot(FoundSlotIndex))
+        {
+            Slots[FoundSlotIndex] = Item;
+            return UpdateSlotItemData(FoundSlotIndex, 0);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        if (FindEmptySlot(FoundSlotIndex))
+        {
+            Slots[FoundSlotIndex] = Item;
+            return UpdateSlotItemData(FoundSlotIndex, 0);
+        }
+        return false;
+    }
+}
+
+bool AAwesomeBaseCharacter::RemoveItemFromSlots(const FSlot& Item)
+{
+    uint8 FoundSlotIndex;
+    int32 FoundAmount;
+    bool bCanStack;
+    if (FindStackOfSameItems(Item, FoundSlotIndex, FoundAmount, bCanStack))
+    {
+        if (RemoveAmountFromSlotsAtIndex(FoundSlotIndex, --FoundAmount)) return true;
+    }
+
+    return false;
+}
+
+void AAwesomeBaseCharacter::InitEquipment()
+{
+    for (uint8 Index = 0; Index < EquipmentSlots; ++Index)
+    {
+        Slots.Add(FSlot());
+    }
 }
 
 void AAwesomeBaseCharacter::MoveForward(float Amount)
@@ -59,7 +175,8 @@ void AAwesomeBaseCharacter::TakeItem()
     FVector End = ViewLocation + (SpringArmComponent->TargetArmLength + 400.f) * VeiwRotation.Vector();
 
     FHitResult HitResult;
-    GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+    UKismetSystemLibrary::SphereTraceSingle(GetWorld(), Start, End, 20.f, ETraceTypeQuery::TraceTypeQuery1, false, {this}, EDrawDebugTrace::ForDuration, HitResult, true);
+    // GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
     if (HitResult.bBlockingHit)
     {
@@ -68,8 +185,10 @@ void AAwesomeBaseCharacter::TakeItem()
         {
             if (const auto Pickup = Cast<AAwesomePickupMaster>(HitResult.GetActor()))
             {
-                AddItem(Pickup->GetPickupItem());
-                Pickup->Destroy();
+                if (TryAddItemToSlots(Pickup->GetPickupItem()))
+                {
+                    Pickup->Destroy();
+                }
             }
         }
     }
@@ -79,13 +198,12 @@ void AAwesomeBaseCharacter::TakeItem()
     }
 }
 
-void AAwesomeBaseCharacter::AddItem(const FSlot& Item)
+bool AAwesomeBaseCharacter::UpdateSlotItemData(const uint8 Index, const int32 AmountModifier)
 {
-    Slots.Add(Item);
-    OnItemPickedup.Broadcast(Slots);
-
-    for (const auto& element : Slots)
-    {
-        UE_LOG(AwesomeCharacter, Display, TEXT("Picked: %s"), *element.DataTableRowHandle.RowName.ToString());
-    }
+    if (!Slots.IsValidIndex(Index)) return false;
+    const auto Result = Slots[Index].Amount + AmountModifier;
+    Slots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
+    UE_LOG(AwesomeCharacter, Display, TEXT("%s added to slot, count: %i"), *Slots[Index].DataTableRowHandle.RowName.ToString(), Slots[Index].Amount)
+    OnSlotsChanged.Broadcast(Slots);
+    return true;
 }

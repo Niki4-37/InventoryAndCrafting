@@ -6,6 +6,8 @@
 void UAwesomeItemDataWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+
+    SetIconToWidget();
 }
 
 void UAwesomeItemDataWidget::SetDataFromItem(const FSlot& ItemData)
@@ -21,6 +23,14 @@ void UAwesomeItemDataWidget::SetDataFromItem(const FSlot& ItemData)
 
 void UAwesomeItemDataWidget::SetIconToWidget()
 {
-    if (!WidgetBorder || !InventoryData.Icon) return;
+    if (!WidgetBorder) return;
+
+    if (!Item.Amount && EmptyIcon)
+    {
+        WidgetBorder->SetBrushFromTexture(EmptyIcon);
+        return;
+    }
+
+    if (!InventoryData.Icon) return;
     WidgetBorder->SetBrushFromTexture(InventoryData.Icon);
 }

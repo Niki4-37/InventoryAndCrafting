@@ -15,7 +15,7 @@ struct FInventoryData : public FTableRowBase  // S_Inventory
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     FString Name;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FString Description;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -24,8 +24,17 @@ struct FInventoryData : public FTableRowBase  // S_Inventory
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UStaticMesh* Mesh{nullptr};
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool bCanStack;
+
+    FInventoryData()
+    {
+        Name = "Empty";
+        Description = "";
+        Icon = nullptr;
+        Mesh = nullptr;
+        bCanStack = false;
+    }
 };
 
 USTRUCT(BlueprintType)
@@ -37,5 +46,5 @@ struct FSlot
     FDataTableRowHandle DataTableRowHandle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 Amount{1};
+    int32 Amount{0};
 };

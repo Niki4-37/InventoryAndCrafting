@@ -27,10 +27,10 @@ protected:
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "10"))
-    uint8 RowsInGrid{3};
+    uint8 SlotsInRow{3};
 
 private:
     void OnNewPawn(APawn* NewPawn);
-    void OnItemPickedup(const TArray<FSlot>& Slots);
+    void OnSlotsChanged(const TArray<FSlot>& Slots);
     void UpdateItemSlots(const TArray<FSlot>& Slots);
 };

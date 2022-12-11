@@ -22,6 +22,9 @@ public:
 
     void SetDataFromItem(const FSlot& ItemData);
 
+    UFUNCTION(BlueprintCallable)
+    FSlot GetItemData() const { return Item; };
+
 protected:
     UPROPERTY(meta = (BindWidget))
     UBorder* WidgetBorder;

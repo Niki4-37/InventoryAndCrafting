@@ -37,6 +37,8 @@ struct FInventoryData : public FTableRowBase  // S_Inventory
     }
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotsChangedSignature, const TArray<FSlot>&);
+
 USTRUCT(BlueprintType)
 struct FSlot
 {

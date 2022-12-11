@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "Engine/StaticMeshActor.h"
 #include "AwesomeTypes.h"
+#include "Interfaces/AwesomeInteractionInterface.h"
 #include "AwesomePickupMaster.generated.h"
 
 /**
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API AAwesomePickupMaster : public AStaticMeshActor
+class INVENTORYANDCRAFTING_API AAwesomePickupMaster : public AStaticMeshActor, public IAwesomeInteractionInterface
 {
     GENERATED_BODY()
 
@@ -19,6 +20,9 @@ public:
     AAwesomePickupMaster();
 
     FSlot GetPickupItem() const { return PickupItem; };
+
+    /* Interface function */
+    virtual void Interact(AActor* InteractiveActor) override;
 
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)

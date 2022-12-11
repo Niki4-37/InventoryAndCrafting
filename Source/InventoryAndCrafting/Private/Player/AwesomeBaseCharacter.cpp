@@ -3,8 +3,8 @@
 #include "Player/AwesomeBaseCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Pickup/AwesomePickupMaster.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Pickup/AwesomeBackpackMaster.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -20,6 +20,21 @@ AAwesomeBaseCharacter::AAwesomeBaseCharacter()
 
     CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
     CameraComponent->SetupAttachment(SpringArmComponent);
+}
+
+void AAwesomeBaseCharacter::EquipBackpack(AAwesomeBackpackMaster* Backpack)
+{
+    EquipedBackpack = Backpack;
+    OnStuffEquiped.Broadcast();
+}
+
+TArray<FSlot> AAwesomeBaseCharacter::GetBackpackSlots() const
+{
+    if (EquipedBackpack)
+    {
+        return EquipedBackpack->GetBackpackSlots();
+    }
+    return TArray<FSlot>();
 }
 
 void AAwesomeBaseCharacter::BeginPlay()
@@ -105,6 +120,12 @@ bool AAwesomeBaseCharacter::TryAddItemToSlots(const FSlot& Item)
     uint8 FoundSlotIndex;
     int32 FoundAmount;
     bool bCanStack;
+
+    if (EquipedBackpack && EquipedBackpack->TryAddItemToSlots(Item))
+    {
+        return true;
+    }
+
     if (FindStackOfSameItems(Item, FoundSlotIndex, FoundAmount, bCanStack))
     {
         if (bCanStack)
@@ -181,15 +202,9 @@ void AAwesomeBaseCharacter::TakeItem()
     if (HitResult.bBlockingHit)
     {
         DrawDebugLine(GetWorld(), Start, HitResult.ImpactPoint, FColor::Blue, false, 5.f, 0U, 3.f);
-        if (HitResult.GetActor() && HitResult.GetActor()->ActorHasTag("Pickup"))
+        if (const auto ActorWithInterface = Cast<IAwesomeInteractionInterface>(HitResult.GetActor()))
         {
-            if (const auto Pickup = Cast<AAwesomePickupMaster>(HitResult.GetActor()))
-            {
-                if (TryAddItemToSlots(Pickup->GetPickupItem()))
-                {
-                    Pickup->Destroy();
-                }
-            }
+            ActorWithInterface->Interact(this);
         }
     }
     else

@@ -5,6 +5,7 @@
 #include "UI/AwesomeItemDataWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Pickup/AwesomeBackpackMaster.h"
 
 void UAwesomeInventoryWidget::NativeOnInitialized()
 {
@@ -21,10 +22,29 @@ void UAwesomeInventoryWidget::OnNewPawn(APawn* NewPawn)
 {
     const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
     if (!Player) return;
+    if (!Player->OnStuffEquiped.IsBoundToObject(this))
+    {
+        Player->OnStuffEquiped.AddUObject(this, &UAwesomeInventoryWidget::OnStuffEquiped);
+    }
 
-    Player->OnSlotsChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotsChanged);
+    if (!Player->GetBackpack()) return;
+    if (!Player->GetBackpack()->OnSlotsChanged.IsBoundToObject(this))
+    {
+        Player->GetBackpack()->OnSlotsChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotsChanged);
+    }
 
-    UpdateItemSlots(Player->GetSlots());
+    UpdateItemSlots(Player->GetBackpackSlots());
+}
+
+void UAwesomeInventoryWidget::OnStuffEquiped()
+{
+    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
+    if (!Player || !Player->GetBackpack()) return;
+    if (!Player->GetBackpack()->OnSlotsChanged.IsBoundToObject(this))
+    {
+        Player->GetBackpack()->OnSlotsChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotsChanged);
+    }
+    UpdateItemSlots(Player->GetBackpackSlots());
 }
 
 void UAwesomeInventoryWidget::OnSlotsChanged(const TArray<FSlot>& Slots)

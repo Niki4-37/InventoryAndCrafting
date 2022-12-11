@@ -5,22 +5,29 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AwesomeTypes.h"
+#include "Interfaces/AwesomeInteractionInterface.h"
 #include "AwesomeBaseCharacter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
+class AAwesomeBackpackMaster;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotsChangedSignature, const TArray<FSlot>&);
+DECLARE_MULTICAST_DELEGATE(FOnStuffEquipedSignature);
 
 UCLASS()
-class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter
+class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter, public IAwesomeInteractionInterface
 {
     GENERATED_BODY()
 
 public:
     AAwesomeBaseCharacter();
 
+    /* used in widget */
     FOnSlotsChangedSignature OnSlotsChanged;
+    FOnStuffEquipedSignature OnStuffEquiped;
+
+    /* Interface function */
+    // virtual void Interact(AActor* InteractiveActor) override;
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -45,8 +52,16 @@ public:
     bool RemoveItemFromSlots(const FSlot& Item);
     bool TryAddItemToSlots(const FSlot& Item);
 
+    AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
+    void EquipBackpack(AAwesomeBackpackMaster* Backpack);
+    TArray<FSlot> GetBackpackSlots() const;
+
 private:
     TArray<FSlot> Slots;
+
+    UPROPERTY()
+    AAwesomeBackpackMaster* EquipedBackpack{nullptr};
+
     void InitEquipment();
 
     void MoveForward(float Amount);

@@ -24,7 +24,20 @@ AAwesomeBaseCharacter::AAwesomeBaseCharacter()
 
 void AAwesomeBaseCharacter::EquipBackpack(AAwesomeBackpackMaster* Backpack)
 {
+    if (!Backpack) return;
+
+    if (EquipedBackpack)
+    {
+        FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, false);
+        EquipedBackpack->DetachFromActor(DetachmentRules);
+        EquipedBackpack->GetStaticMeshComponent()->SetSimulatePhysics(true);
+    }
+
     EquipedBackpack = Backpack;
+    EquipedBackpack->GetStaticMeshComponent()->SetSimulatePhysics(false);
+    FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
+    EquipedBackpack->AttachToComponent(GetMesh(), AttachmentRules, BackpackSocketName);
+
     OnStuffEquiped.Broadcast();
 }
 
@@ -192,8 +205,8 @@ void AAwesomeBaseCharacter::TakeItem()
     FVector ViewLocation;
     FRotator VeiwRotation;
     GetController()->GetPlayerViewPoint(ViewLocation, VeiwRotation);
-    FVector Start = ViewLocation + SpringArmComponent->TargetArmLength * VeiwRotation.Vector();
-    FVector End = ViewLocation + (SpringArmComponent->TargetArmLength + 400.f) * VeiwRotation.Vector();
+    FVector Start = ViewLocation + (SpringArmComponent->TargetArmLength + 30.f) * VeiwRotation.Vector();
+    FVector End = ViewLocation + (SpringArmComponent->TargetArmLength + 300.f) * VeiwRotation.Vector();
 
     FHitResult HitResult;
     UKismetSystemLibrary::SphereTraceSingle(GetWorld(), Start, End, 20.f, ETraceTypeQuery::TraceTypeQuery1, false, {this}, EDrawDebugTrace::ForDuration, HitResult, true);

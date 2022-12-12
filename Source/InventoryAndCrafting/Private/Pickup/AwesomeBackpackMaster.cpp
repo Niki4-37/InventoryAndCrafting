@@ -3,16 +3,21 @@
 #include "Pickup/AwesomeBackpackMaster.h"
 #include "Player/AwesomeBaseCharacter.h"
 
+AAwesomeBackpackMaster::AAwesomeBackpackMaster()
+{
+    GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
+    // FCollisionResponseContainer ResponseContainer;
+    // ResponseContainer.SetResponse(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+    // ResponseContainer.SetResponse(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+    // GetStaticMeshComponent()->SetCollisionResponseToChannels(ResponseContainer);
+}
+
 void AAwesomeBackpackMaster::Interact(AActor* InteractiveActor)
 {
     const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
     if (!Player) return;
 
-    if (Player->GetBackpack()) return;
-
     Player->EquipBackpack(this);
-
-    Destroy();
 }
 
 bool AAwesomeBackpackMaster::FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack)

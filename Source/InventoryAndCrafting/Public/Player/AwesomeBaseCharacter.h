@@ -26,9 +26,6 @@ public:
     FOnSlotsChangedSignature OnSlotsChanged;
     FOnStuffEquipedSignature OnStuffEquiped;
 
-    /* Interface function */
-    // virtual void Interact(AActor* InteractiveActor) override;
-
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     USpringArmComponent* SpringArmComponent;
@@ -38,6 +35,9 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
     uint8 EquipmentSlots{4};
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    FName BackpackSocketName;
 
     virtual void BeginPlay() override;
 

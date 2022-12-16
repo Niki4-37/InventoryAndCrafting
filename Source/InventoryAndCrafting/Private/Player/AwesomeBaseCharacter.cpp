@@ -74,18 +74,18 @@ bool AAwesomeBaseCharacter::FindStackOfSameItems(const FSlot& Item, uint8& OutSl
     OutSlotIndex = -1;
     OutAmount = -1;
     bOutCanStack = false;
-    if (!Slots.Num() || !Item.DataTableRowHandle.DataTable) return false;
+    if (!EquipmentSlots.Num() || !Item.DataTableRowHandle.DataTable) return false;
 
-    const auto ItemDataPointer = Item.DataTableRowHandle.DataTable->FindRow<FInventoryData>(Item.DataTableRowHandle.RowName, "", false);
+    const auto ItemDataPointer = Item.DataTableRowHandle.DataTable->FindRow<FItemData>(Item.DataTableRowHandle.RowName, "", false);
     if (!ItemDataPointer) return false;
     const auto ItemData = *ItemDataPointer;
     bOutCanStack = ItemData.bCanStack;
 
     uint8 SlotIndex{0};
-    for (const auto& SlotData : Slots)
+    for (const auto& SlotData : EquipmentSlots)
     {
         if (!SlotData.DataTableRowHandle.DataTable) continue;
-        const auto SlotItemDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FInventoryData>(SlotData.DataTableRowHandle.RowName, "", false);
+        const auto SlotItemDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FItemData>(SlotData.DataTableRowHandle.RowName, "", false);
         if (!SlotItemDataPointer) continue;
         const auto SlotItemData = *SlotItemDataPointer;
         if (SlotItemData.Name == ItemData.Name)
@@ -103,10 +103,10 @@ bool AAwesomeBaseCharacter::FindStackOfSameItems(const FSlot& Item, uint8& OutSl
 bool AAwesomeBaseCharacter::FindEmptySlot(uint8& OutSlotIndex)
 {
     OutSlotIndex = -1;
-    if (!Slots.Num()) return false;
+    if (!EquipmentSlots.Num()) return false;
 
     uint8 SlotIndex{0};
-    for (const auto& SlotData : Slots)
+    for (const auto& SlotData : EquipmentSlots)
     {
         if (!SlotData.Amount)
         {
@@ -118,13 +118,8 @@ bool AAwesomeBaseCharacter::FindEmptySlot(uint8& OutSlotIndex)
     return false;
 }
 
-bool AAwesomeBaseCharacter::RemoveAmountFromSlotsAtIndex(const uint8 Index, const int32 AmountToRemove)
+bool AAwesomeBaseCharacter::RemoveAmountFromEquipmentSlotsAtIndex(const uint8 Index, const int32 AmountToRemove)
 {
-    // if (!Slots.IsValidIndex(Index)) return false;
-    // const auto Result = Slots[Index].Amount - AmountToRemove;
-    // Slots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
-    // OnSlotsChanged.Broadcast(Slots);
-    // return true;
     return UpdateSlotItemData(Index, -AmountToRemove);
 }
 
@@ -148,7 +143,7 @@ bool AAwesomeBaseCharacter::TryAddItemToSlots(const FSlot& Item)
 
         if (!bCanStack && FindEmptySlot(FoundSlotIndex))
         {
-            Slots[FoundSlotIndex] = Item;
+            EquipmentSlots[FoundSlotIndex] = Item;
             return UpdateSlotItemData(FoundSlotIndex, 0);
         }
         else
@@ -160,21 +155,21 @@ bool AAwesomeBaseCharacter::TryAddItemToSlots(const FSlot& Item)
     {
         if (FindEmptySlot(FoundSlotIndex))
         {
-            Slots[FoundSlotIndex] = Item;
+            EquipmentSlots[FoundSlotIndex] = Item;
             return UpdateSlotItemData(FoundSlotIndex, 0);
         }
         return false;
     }
 }
 
-bool AAwesomeBaseCharacter::RemoveItemFromSlots(const FSlot& Item)
+bool AAwesomeBaseCharacter::RemoveItemFromEquipmentSlots(const FSlot& Item)
 {
     uint8 FoundSlotIndex;
     int32 FoundAmount;
     bool bCanStack;
     if (FindStackOfSameItems(Item, FoundSlotIndex, FoundAmount, bCanStack))
     {
-        if (RemoveAmountFromSlotsAtIndex(FoundSlotIndex, --FoundAmount)) return true;
+        if (RemoveAmountFromEquipmentSlotsAtIndex(FoundSlotIndex, --FoundAmount)) return true;
     }
 
     return false;
@@ -182,9 +177,9 @@ bool AAwesomeBaseCharacter::RemoveItemFromSlots(const FSlot& Item)
 
 void AAwesomeBaseCharacter::InitEquipment()
 {
-    for (uint8 Index = 0; Index < EquipmentSlots; ++Index)
+    for (uint8 Index = 0; Index < EquipmentSlotsNumber; ++Index)
     {
-        Slots.Add(FSlot());
+        EquipmentSlots.Add(FSlot());
     }
 }
 
@@ -228,10 +223,11 @@ void AAwesomeBaseCharacter::TakeItem()
 
 bool AAwesomeBaseCharacter::UpdateSlotItemData(const uint8 Index, const int32 AmountModifier)
 {
-    if (!Slots.IsValidIndex(Index)) return false;
-    const auto Result = Slots[Index].Amount + AmountModifier;
-    Slots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
-    UE_LOG(AwesomeCharacter, Display, TEXT("%s added to slot, count: %i"), *Slots[Index].DataTableRowHandle.RowName.ToString(), Slots[Index].Amount)
-    OnSlotsChanged.Broadcast(Slots);
+    if (!EquipmentSlots.IsValidIndex(Index)) return false;
+    const auto Result = EquipmentSlots[Index].Amount + AmountModifier;
+    EquipmentSlots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
+    EquipmentSlots[Index].ItemLocationType = EItemLocationType::Equipment;
+    UE_LOG(AwesomeCharacter, Display, TEXT("%s added to slot, count: %i"), *EquipmentSlots[Index].DataTableRowHandle.RowName.ToString(), EquipmentSlots[Index].Amount)
+    OnSlotsChanged.Broadcast(EquipmentSlots);
     return true;
 }

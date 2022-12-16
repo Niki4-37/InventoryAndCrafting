@@ -62,7 +62,8 @@ void UAwesomeInventoryWidget::UpdateItemSlots(const TArray<FSlot>& Slots)
     {
         auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (!ItemDataWidget) continue;
-        ItemDataWidget->SetDataFromItem(SlotData);
+        ItemDataWidget->SetDataFromSlot(SlotData);
+        ItemDataWidget->SetItemIndex(SlotIndex);
         auto GridObject = InventoryItemSlots->AddChildToUniformGrid(ItemDataWidget, SlotIndex / SlotsInRow, SlotIndex % SlotsInRow);
         if (!GridObject) continue;
         GridObject->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);

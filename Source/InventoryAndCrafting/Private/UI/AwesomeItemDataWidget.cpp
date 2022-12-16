@@ -2,6 +2,8 @@
 
 #include "UI/AwesomeItemDataWidget.h"
 #include "Components/Border.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "UI/AwesomeDragDropItemOperation.h"
 
 void UAwesomeItemDataWidget::NativeOnInitialized()
 {
@@ -10,27 +12,47 @@ void UAwesomeItemDataWidget::NativeOnInitialized()
     SetIconToWidget();
 }
 
-void UAwesomeItemDataWidget::SetDataFromItem(const FSlot& ItemData)
+void UAwesomeItemDataWidget::SetDataFromSlot(const FSlot& InSlotData)
 {
-    Item = ItemData;
+    SlotData = InSlotData;
 
-    if (!Item.DataTableRowHandle.DataTable) return;
-    const auto PickupDataPointer = Item.DataTableRowHandle.DataTable->FindRow<FInventoryData>(Item.DataTableRowHandle.RowName, "", false);
+    if (!SlotData.DataTableRowHandle.DataTable) return;
+    const auto PickupDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FItemData>(SlotData.DataTableRowHandle.RowName, "", false);
     if (!PickupDataPointer) return;
-    InventoryData = *PickupDataPointer;
+    ItemData = *PickupDataPointer;
     SetIconToWidget();
+}
+
+FReply UAwesomeItemDataWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    // Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent); //??
+    return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
+}
+
+void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
+{
+    auto DragDrop = Cast<UAwesomeDragDropItemOperation>(UWidgetBlueprintLibrary::CreateDragDropOperation(UAwesomeDragDropItemOperation::StaticClass()));
+    if (DragDrop)
+    {
+        DragDrop->SetSlotData(FSlot(SlotData.DataTableRowHandle, 1, SlotData.ItemLocationType));
+        DragDrop->SetSlotIndex(ItemIndex);
+        DragDrop->DefaultDragVisual = this;
+        DragDrop->Pivot = EDragPivot::CenterCenter;
+    }
+    OutOperation = DragDrop;
+    Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 }
 
 void UAwesomeItemDataWidget::SetIconToWidget()
 {
     if (!WidgetBorder) return;
 
-    if (!Item.Amount && EmptyIcon)
+    if (!SlotData.Amount && EmptyIcon)
     {
         WidgetBorder->SetBrushFromTexture(EmptyIcon);
         return;
     }
 
-    if (!InventoryData.Icon) return;
-    WidgetBorder->SetBrushFromTexture(InventoryData.Icon);
+    if (!ItemData.Icon) return;
+    WidgetBorder->SetBrushFromTexture(ItemData.Icon);
 }

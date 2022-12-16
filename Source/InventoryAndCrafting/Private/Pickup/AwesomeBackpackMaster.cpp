@@ -6,10 +6,10 @@
 AAwesomeBackpackMaster::AAwesomeBackpackMaster()
 {
     GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-    // FCollisionResponseContainer ResponseContainer;
-    // ResponseContainer.SetResponse(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-    // ResponseContainer.SetResponse(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-    // GetStaticMeshComponent()->SetCollisionResponseToChannels(ResponseContainer);
+    FCollisionResponseContainer ResponseContainer;
+    ResponseContainer.SetResponse(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+    ResponseContainer.SetResponse(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+    GetStaticMeshComponent()->SetCollisionResponseToChannels(ResponseContainer);
 }
 
 void AAwesomeBackpackMaster::Interact(AActor* InteractiveActor)
@@ -27,7 +27,7 @@ bool AAwesomeBackpackMaster::FindStackOfSameItems(const FSlot& Item, uint8& OutS
     bOutCanStack = false;
     if (!BackpackSlots.Num() || !Item.DataTableRowHandle.DataTable) return false;
 
-    const auto ItemDataPointer = Item.DataTableRowHandle.DataTable->FindRow<FInventoryData>(Item.DataTableRowHandle.RowName, "", false);
+    const auto ItemDataPointer = Item.DataTableRowHandle.DataTable->FindRow<FItemData>(Item.DataTableRowHandle.RowName, "", false);
     if (!ItemDataPointer) return false;
     const auto ItemData = *ItemDataPointer;
     bOutCanStack = ItemData.bCanStack;
@@ -36,7 +36,7 @@ bool AAwesomeBackpackMaster::FindStackOfSameItems(const FSlot& Item, uint8& OutS
     for (const auto& SlotData : BackpackSlots)
     {
         if (!SlotData.DataTableRowHandle.DataTable) continue;
-        const auto SlotItemDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FInventoryData>(SlotData.DataTableRowHandle.RowName, "", false);
+        const auto SlotItemDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FItemData>(SlotData.DataTableRowHandle.RowName, "", false);
         if (!SlotItemDataPointer) continue;
         const auto SlotItemData = *SlotItemDataPointer;
         if (SlotItemData.Name == ItemData.Name)
@@ -102,6 +102,11 @@ bool AAwesomeBackpackMaster::TryAddItemToSlots(const FSlot& Item)
     }
 }
 
+bool AAwesomeBackpackMaster::RemoveAmountFromInventorySlotsAtIndex(const uint8 Index, const int32 AmountToRemove)
+{
+    return UpdateSlotItemData(Index, -AmountToRemove);
+}
+
 void AAwesomeBackpackMaster::BeginPlay()
 {
     Super::BeginPlay();
@@ -122,6 +127,7 @@ bool AAwesomeBackpackMaster::UpdateSlotItemData(const uint8 Index, const int32 A
     if (!BackpackSlots.IsValidIndex(Index)) return false;
     const auto Result = BackpackSlots[Index].Amount + AmountModifier;
     BackpackSlots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
+    BackpackSlots[Index].ItemLocationType = EItemLocationType::Inventory;
     OnSlotsChanged.Broadcast(BackpackSlots);
     return true;
 }

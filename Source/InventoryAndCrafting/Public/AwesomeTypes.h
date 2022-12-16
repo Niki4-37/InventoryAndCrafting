@@ -7,8 +7,16 @@
 class UTexture2D;
 class UStaticMesh;
 
+UENUM(BlueprintType)
+enum class EItemLocationType : uint8
+{
+    Environment,
+    Inventory,
+    Equipment
+};
+
 USTRUCT(BlueprintType)
-struct FInventoryData : public FTableRowBase  // S_Inventory
+struct FItemData : public FTableRowBase  // S_Inventory
 {
     GENERATED_USTRUCT_BODY()
 
@@ -27,7 +35,7 @@ struct FInventoryData : public FTableRowBase  // S_Inventory
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool bCanStack;
 
-    FInventoryData()
+    FItemData()
     {
         Name = "Empty";
         Description = "";
@@ -49,4 +57,26 @@ struct FSlot
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 Amount{0};
+
+    EItemLocationType ItemLocationType;
+
+    // clang-format off
+    FSlot(const FSlot& InSlot) 
+        : DataTableRowHandle(InSlot.DataTableRowHandle)
+        , Amount(InSlot.Amount)
+        , ItemLocationType(InSlot.ItemLocationType)
+    {}
+
+    FSlot(FSlot& InSlot) 
+        : DataTableRowHandle(InSlot.DataTableRowHandle)
+        , Amount(InSlot.Amount)
+        , ItemLocationType(InSlot.ItemLocationType)
+    {}
+
+    FSlot(const FDataTableRowHandle& InDataTableRowHandle = FDataTableRowHandle(), int32 InAmount = 0, EItemLocationType InItemLocationType = EItemLocationType::Environment) 
+        : DataTableRowHandle(InDataTableRowHandle)
+        , Amount(InAmount) 
+        , ItemLocationType(InItemLocationType)
+    {}
+    //clang-format on
 };

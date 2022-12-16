@@ -34,7 +34,7 @@ protected:
     UCameraComponent* CameraComponent;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
-    uint8 EquipmentSlots{4};
+    uint8 EquipmentSlotsNumber{4};
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     FName BackpackSocketName;
@@ -44,12 +44,12 @@ protected:
 public:
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-    TArray<FSlot> GetSlots() const { return Slots; };
+    TArray<FSlot> GetEquipmentSlots() const { return EquipmentSlots; };
 
     bool FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack);
     bool FindEmptySlot(uint8& OutSlotIndex);
-    bool RemoveAmountFromSlotsAtIndex(const uint8 Index, const int32 AmountToRemove);
-    bool RemoveItemFromSlots(const FSlot& Item);
+    bool RemoveAmountFromEquipmentSlotsAtIndex(const uint8 Index, const int32 AmountToRemove);
+    bool RemoveItemFromEquipmentSlots(const FSlot& Item);
     bool TryAddItemToSlots(const FSlot& Item);
 
     AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
@@ -57,7 +57,7 @@ public:
     TArray<FSlot> GetBackpackSlots() const;
 
 private:
-    TArray<FSlot> Slots;
+    TArray<FSlot> EquipmentSlots;
 
     UPROPERTY()
     AAwesomeBackpackMaster* EquipedBackpack{nullptr};

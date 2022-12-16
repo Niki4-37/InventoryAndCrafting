@@ -26,6 +26,7 @@ public:
     bool FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack);
     bool FindEmptySlot(uint8& OutSlotIndex);
     bool TryAddItemToSlots(const FSlot& Item);
+    bool RemoveAmountFromInventorySlotsAtIndex(const uint8 Index, const int32 AmountToRemove);
 
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "25"))

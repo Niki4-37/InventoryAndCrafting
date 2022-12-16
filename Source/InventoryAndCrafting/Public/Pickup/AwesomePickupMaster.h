@@ -20,6 +20,7 @@ public:
     AAwesomePickupMaster();
 
     FSlot GetPickupItem() const { return PickupItem; };
+    void SetPickupItem(const FSlot& InItemData) { PickupItem = InItemData; };
 
     /* Interface function */
     virtual void Interact(AActor* InteractiveActor) override;

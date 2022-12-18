@@ -80,6 +80,7 @@ bool AAwesomeBaseCharacter::FindStackOfSameItems(const FSlot& Item, uint8& OutSl
     if (!ItemDataPointer) return false;
     const auto ItemData = *ItemDataPointer;
     bOutCanStack = ItemData.bCanStack;
+    if (!ItemData.bCanStack) return false;
 
     uint8 SlotIndex{0};
     for (const auto& SlotData : EquipmentSlots)
@@ -162,6 +163,29 @@ bool AAwesomeBaseCharacter::TryAddItemToSlots(const FSlot& Item)
     }
 }
 
+bool AAwesomeBaseCharacter::TryAddItemToEquipmentSlotsByIndex(const FSlot& Item, const uint8 InIndex)
+{
+    if (!EquipmentSlots.IsValidIndex(InIndex)) return false;
+
+    if (!EquipmentSlots[InIndex].Amount)
+    {
+        EquipmentSlots[InIndex] = Item;
+        return UpdateSlotItemData(InIndex, 0);
+    }
+
+    if (Item.DataTableRowHandle.RowName == EquipmentSlots[InIndex].DataTableRowHandle.RowName)
+    {
+        const auto ItemDataPointer = Item.DataTableRowHandle.DataTable->FindRow<FItemData>(Item.DataTableRowHandle.RowName, "", false);
+        if (!ItemDataPointer) return false;
+        const auto ItemData = *ItemDataPointer;
+        if (!ItemData.bCanStack) return false;
+
+        return UpdateSlotItemData(InIndex, Item.Amount);
+    }
+
+    return false;
+}
+
 bool AAwesomeBaseCharacter::RemoveItemFromEquipmentSlots(const FSlot& Item)
 {
     uint8 FoundSlotIndex;
@@ -225,9 +249,10 @@ bool AAwesomeBaseCharacter::UpdateSlotItemData(const uint8 Index, const int32 Am
 {
     if (!EquipmentSlots.IsValidIndex(Index)) return false;
     const auto Result = EquipmentSlots[Index].Amount + AmountModifier;
-    EquipmentSlots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
+    if (Result > 99) return false;
+    EquipmentSlots[Index].Amount = FMath::Clamp(Result, 0, 99);  // Set MAX in properties;
     EquipmentSlots[Index].ItemLocationType = EItemLocationType::Equipment;
-    UE_LOG(AwesomeCharacter, Display, TEXT("%s added to slot, count: %i"), *EquipmentSlots[Index].DataTableRowHandle.RowName.ToString(), EquipmentSlots[Index].Amount)
+    UE_LOG(AwesomeCharacter, Display, TEXT("%s added to slot: %i, count: %i"), *EquipmentSlots[Index].DataTableRowHandle.RowName.ToString(), Index, EquipmentSlots[Index].Amount)
     OnSlotsChanged.Broadcast(EquipmentSlots);
     return true;
 }

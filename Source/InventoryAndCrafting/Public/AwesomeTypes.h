@@ -73,9 +73,11 @@ struct FSlot
         , ItemLocationType(InSlot.ItemLocationType)
     {}
 
-    FSlot(const FDataTableRowHandle& InDataTableRowHandle = FDataTableRowHandle(), int32 InAmount = 0, EItemLocationType InItemLocationType = EItemLocationType::Environment) 
+    FSlot(const FDataTableRowHandle& InDataTableRowHandle = FDataTableRowHandle(),  //
+            int32 InAmount = 0,                                                     //
+            EItemLocationType InItemLocationType = EItemLocationType::Environment)  //
         : DataTableRowHandle(InDataTableRowHandle)
-        , Amount(InAmount) 
+        , Amount(InAmount)
         , ItemLocationType(InItemLocationType)
     {}
     //clang-format on

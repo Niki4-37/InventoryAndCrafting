@@ -51,6 +51,7 @@ public:
     bool RemoveAmountFromEquipmentSlotsAtIndex(const uint8 Index, const int32 AmountToRemove);
     bool RemoveItemFromEquipmentSlots(const FSlot& Item);
     bool TryAddItemToSlots(const FSlot& Item);
+    bool TryAddItemToEquipmentSlotsByIndex(const FSlot& Item, const uint8 InIndex);
 
     AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
     void EquipBackpack(AAwesomeBackpackMaster* Backpack);

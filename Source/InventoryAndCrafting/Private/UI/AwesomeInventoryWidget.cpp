@@ -28,33 +28,15 @@ void UAwesomeInventoryWidget::OnNewPawn(APawn* NewPawn)
     }
 
     if (!Player->GetBackpack()) return;
-    if (!Player->GetBackpack()->OnSlotsChanged.IsBoundToObject(this))
+    if (!Player->GetBackpack()->OnSlotChanged.IsBoundToObject(this))
     {
-        Player->GetBackpack()->OnSlotsChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotsChanged);
+        Player->GetBackpack()->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
     }
-
-    UpdateItemSlots(Player->GetBackpackSlots());
 }
 
-void UAwesomeInventoryWidget::OnStuffEquiped()
+void UAwesomeInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player || !Player->GetBackpack()) return;
-    if (!Player->GetBackpack()->OnSlotsChanged.IsBoundToObject(this))
-    {
-        Player->GetBackpack()->OnSlotsChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotsChanged);
-    }
-    UpdateItemSlots(Player->GetBackpackSlots());
-}
-
-void UAwesomeInventoryWidget::OnSlotsChanged(const TArray<FSlot>& Slots)
-{
-    UpdateItemSlots(Slots);
-}
-
-void UAwesomeInventoryWidget::UpdateItemSlots(const TArray<FSlot>& Slots)
-{
-    if (!InventoryItemSlots) return;
+    if (!InventoryItemSlots || Type != ESlotLocationType::Inventory) return;
     InventoryItemSlots->ClearChildren();
 
     uint8 SlotIndex{0};
@@ -62,12 +44,28 @@ void UAwesomeInventoryWidget::UpdateItemSlots(const TArray<FSlot>& Slots)
     {
         auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (!ItemDataWidget) continue;
-        ItemDataWidget->SetDataFromSlot(SlotData);
+        ItemDataWidget->SetDataSlot(SlotData);
         ItemDataWidget->SetItemIndex(SlotIndex);
+        ItemDataWidget->SetSlotLocationType(ESlotLocationType::Inventory);
         auto GridObject = InventoryItemSlots->AddChildToUniformGrid(ItemDataWidget, SlotIndex / SlotsInRow, SlotIndex % SlotsInRow);
         if (!GridObject) continue;
         GridObject->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
         GridObject->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
         ++SlotIndex;
     }
+
+    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
+    if (!Player || !Player->GetBackpack()) return;
+    if (!Player->GetBackpack()->OnSlotChanged.IsBoundToObject(this))
+    {
+        Player->GetBackpack()->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
+    }
+}
+
+void UAwesomeInventoryWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex)
+{
+    if (!InventoryItemSlots) return;
+    auto ItemDataWidget = Cast<UAwesomeItemDataWidget>(InventoryItemSlots->GetChildAt(SlotIndex));
+    if (!ItemDataWidget) return;
+    ItemDataWidget->SetDataSlot(NewSlotData);
 }

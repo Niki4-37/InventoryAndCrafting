@@ -31,7 +31,6 @@ protected:
 
 private:
     void OnNewPawn(APawn* NewPawn);
-    void OnStuffEquiped();
-    void OnSlotsChanged(const TArray<FSlot>& Slots);
-    void UpdateItemSlots(const TArray<FSlot>& Slots);
+    void OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type);
+    void OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex);
 };

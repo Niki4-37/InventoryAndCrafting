@@ -18,7 +18,7 @@ class INVENTORYANDCRAFTING_API AAwesomeBackpackMaster : public AStaticMeshActor,
 
 public:
     AAwesomeBackpackMaster();
-    FOnSlotsChangedSignature OnSlotsChanged;
+    FOnSlotDataChangedSignature OnSlotChanged;
 
     virtual void Interact(AActor* InteractiveActor) override;
 

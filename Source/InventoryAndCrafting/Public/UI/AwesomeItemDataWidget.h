@@ -20,12 +20,13 @@ class INVENTORYANDCRAFTING_API UAwesomeItemDataWidget : public UUserWidget
 public:
     virtual void NativeOnInitialized() override;
 
-    void SetDataFromSlot(const FSlot& InSlotData);
+    void SetDataSlot(const FSlot& InSlotData);
 
     UFUNCTION(BlueprintCallable)
     FSlot GetSlotData() const { return SlotData; };
 
     void SetItemIndex(uint8 Index) { ItemIndex = Index; };
+    void SetSlotLocationType(ESlotLocationType Type) { LocationType = Type; };
 
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
@@ -38,10 +39,14 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UTexture2D* EmptyIcon;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    TSubclassOf<UUserWidget> ItemDataWidgetClass;
+
 private:
     FItemData ItemData;
     FSlot SlotData;
     uint8 ItemIndex;
+    ESlotLocationType LocationType;
 
     void SetIconToWidget();
 };

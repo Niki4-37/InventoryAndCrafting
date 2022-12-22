@@ -14,12 +14,15 @@ void UAwesomeItemDataWidget::NativeOnInitialized()
     SetIconToWidget();
 }
 
-void UAwesomeItemDataWidget::SetDataFromSlot(const FSlot& InSlotData)
+void UAwesomeItemDataWidget::SetDataSlot(const FSlot& InSlotData)
 {
     SlotData = InSlotData;
-
-    if (!SlotData.DataTableRowHandle.DataTable) return;
-    const auto PickupDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FItemData>(SlotData.DataTableRowHandle.RowName, "", false);
+    if (!SlotData.Amount)
+    {
+        SetIconToWidget();
+        return;
+    }
+    const auto PickupDataPointer = SlotData.DataTableRowHandle.GetRow<FItemData>("");
     if (!PickupDataPointer) return;
     ItemData = *PickupDataPointer;
     SetIconToWidget();
@@ -35,9 +38,16 @@ void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
     auto DragDrop = Cast<UAwesomeDragDropItemOperation>(UWidgetBlueprintLibrary::CreateDragDropOperation(UAwesomeDragDropItemOperation::StaticClass()));
     if (DragDrop)
     {
-        DragDrop->SetSlotData(FSlot(SlotData.DataTableRowHandle, 1, SlotData.ItemLocationType));
-        DragDrop->SetSlotIndex(ItemIndex);
-        DragDrop->DefaultDragVisual = this;
+        DragDrop->SetSlotData(FSlot(SlotData.DataTableRowHandle, 1));
+        DragDrop->SetFromSlotIndex(ItemIndex);
+        DragDrop->SetFromSlotLocationType(LocationType);
+        auto DradDropWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        if (DradDropWidget)
+        {
+            DradDropWidget->SetDataSlot(SlotData);
+            DradDropWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+            DragDrop->DefaultDragVisual = DradDropWidget;
+        }
         DragDrop->Pivot = EDragPivot::CenterCenter;
     }
     OutOperation = DragDrop;
@@ -50,27 +60,13 @@ bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
     if (!DragDropOperation) return true;
 
     const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player || !Player->GetBackpack()) return true;
+    if (!Player) return true;
 
-    switch (DragDropOperation->GetSlotData().ItemLocationType)
-    {
-        case EItemLocationType::Inventory:
-        {
-            if (Player->TryAddItemToEquipmentSlotsByIndex(DragDropOperation->GetSlotData(), ItemIndex))
-            {
-                Player->GetBackpack()->RemoveAmountFromInventorySlotsAtIndex(DragDropOperation->GetSlotIndex(), DragDropOperation->GetSlotData().Amount);
-            }
-            break;
-        }
-        case EItemLocationType::Equipment:
-        {
-            if (Player->GetBackpack()->TryAddItemToSlots(DragDropOperation->GetSlotData()))
-            {
-                Player->RemoveAmountFromEquipmentSlotsAtIndex(DragDropOperation->GetSlotIndex(), DragDropOperation->GetSlotData().Amount);
-            }
-            break;
-        }
-    }
+    Player->MoveItem(DragDropOperation->GetSlotData(),              //
+                     DragDropOperation->GetItemFromLocationType(),  //
+                     DragDropOperation->GetFromSlotIndex(),         //
+                     LocationType,                                  //
+                     ItemIndex);
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }

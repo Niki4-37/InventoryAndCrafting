@@ -30,8 +30,7 @@ void AAwesomePickupMaster::Interact(AActor* InteractiveActor)
 
 void AAwesomePickupMaster::InitPickup()
 {
-    if (!PickupItem.DataTableRowHandle.DataTable) return;
-    const auto PickupDataPointer = PickupItem.DataTableRowHandle.DataTable->FindRow<FItemData>(PickupItem.DataTableRowHandle.RowName, "", false);
+    const auto PickupDataPointer = PickupItem.DataTableRowHandle.GetRow<FItemData>("");
     if (!PickupDataPointer) return;
     const auto PickupData = *PickupDataPointer;
 

@@ -22,8 +22,4 @@ public:
 protected:
     UPROPERTY(meta = (BindWidget))
     UBorder* DropArea;
-
-private:
-    void DropFromInventory(const uint8 Index, const FSlot& DroppedItem);
-    void DropFromEquipment(const uint8 Index, const FSlot& DroppedItem);
 };

@@ -17,12 +17,15 @@ class INVENTORYANDCRAFTING_API UAwesomeDragDropItemOperation : public UDragDropO
 
 public:
     void SetSlotData(const FSlot& InSlotData) { SlotData = InSlotData; };
-    void SetSlotIndex(const uint8 InSlotIndex) { SlotIndex = InSlotIndex; };
+    void SetFromSlotIndex(const uint8 InIndex) { FromSlotIndex = InIndex; };
+    void SetFromSlotLocationType(ESlotLocationType InType) { FromLocationType = InType; };
 
     FSlot GetSlotData() const { return SlotData; };
-    uint8 GetSlotIndex() const { return SlotIndex; };
+    uint8 GetFromSlotIndex() const { return FromSlotIndex; };
+    ESlotLocationType GetItemFromLocationType() const { return FromLocationType; };
 
 private:
     FSlot SlotData;
-    uint8 SlotIndex;
+    ESlotLocationType FromLocationType;
+    uint8 FromSlotIndex;
 };

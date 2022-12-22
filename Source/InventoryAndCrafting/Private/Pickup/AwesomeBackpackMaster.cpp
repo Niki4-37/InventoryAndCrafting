@@ -126,8 +126,11 @@ bool AAwesomeBackpackMaster::UpdateSlotItemData(const uint8 Index, const int32 A
 {
     if (!BackpackSlots.IsValidIndex(Index)) return false;
     const auto Result = BackpackSlots[Index].Amount + AmountModifier;
-    BackpackSlots[Index].Amount = FMath::Clamp(Result, 0, 999);  // Set MAX in properties;
-    BackpackSlots[Index].ItemLocationType = EItemLocationType::Inventory;
-    OnSlotsChanged.Broadcast(BackpackSlots);
+    BackpackSlots[Index].Amount = FMath::Clamp(Result, 0, 99);  // Set MAX in properties;
+    if (!BackpackSlots[Index].Amount)
+    {
+        BackpackSlots[Index] = FSlot();
+    }
+    OnSlotChanged.Broadcast(BackpackSlots[Index], Index);
     return true;
 }

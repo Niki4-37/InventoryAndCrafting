@@ -8,11 +8,12 @@ class UTexture2D;
 class UStaticMesh;
 
 UENUM(BlueprintType)
-enum class EItemLocationType : uint8
+enum class ESlotLocationType : uint8
 {
     Environment,
+    Equipment,
     Inventory,
-    Equipment
+    PersonalSlots
 };
 
 USTRUCT(BlueprintType)
@@ -26,33 +27,27 @@ struct FSlot
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 Amount{0};
 
-    EItemLocationType ItemLocationType;
-
     // clang-format off
     FSlot(const FSlot& InSlot) 
         : DataTableRowHandle(InSlot.DataTableRowHandle)
         , Amount(InSlot.Amount)
-        , ItemLocationType(InSlot.ItemLocationType)
     {}
 
     FSlot(FSlot& InSlot) 
         : DataTableRowHandle(InSlot.DataTableRowHandle)
         , Amount(InSlot.Amount)
-        , ItemLocationType(InSlot.ItemLocationType)
     {}
 
     FSlot(const FDataTableRowHandle& InDataTableRowHandle = FDataTableRowHandle(),  //
-            int32 InAmount = 0,                                                     //
-            EItemLocationType InItemLocationType = EItemLocationType::Environment)  //
+            int32 InAmount = 0)                                                     //
         : DataTableRowHandle(InDataTableRowHandle)
         , Amount(InAmount)
-        , ItemLocationType(InItemLocationType)
     {}
     //clang-format on
 };
 
 USTRUCT(BlueprintType)
-struct FItemData : public FTableRowBase  // S_Inventory
+struct FItemData : public FTableRowBase
 {
     GENERATED_USTRUCT_BODY()
 
@@ -61,6 +56,12 @@ struct FItemData : public FTableRowBase  // S_Inventory
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FString Description;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FString ItemType;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<AActor> ActorClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UTexture2D* Icon{nullptr};
@@ -81,5 +82,6 @@ struct FItemData : public FTableRowBase  // S_Inventory
     int32 OutCraftedAmount;
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotsChangedSignature, const TArray<FSlot>&);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotDataChangedSignature, const FSlot&, const uint8);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStuffEquipedSignature, const TArray<FSlot>&, ESlotLocationType);
 

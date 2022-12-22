@@ -22,9 +22,9 @@ void UAwesomeEquipmentWidget::OnNewPawn(APawn* NewPawn)
     const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
     if (!Player) return;
 
-    Player->OnSlotsChanged.AddUObject(this, &UAwesomeEquipmentWidget::UpdateItemSlots);
+    // Player->OnSlotsChanged.AddUObject(this, &UAwesomeEquipmentWidget::UpdateItemSlots);
 
-    UpdateItemSlots(Player->GetEquipmentSlots());
+    UpdateItemSlots(Player->GetPersonalSlots());
 }
 
 void UAwesomeEquipmentWidget::UpdateItemSlots(const TArray<FSlot>& Slots)
@@ -37,8 +37,9 @@ void UAwesomeEquipmentWidget::UpdateItemSlots(const TArray<FSlot>& Slots)
     {
         auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (!ItemDataWidget) continue;
-        ItemDataWidget->SetDataFromSlot(SlotData);
+        ItemDataWidget->SetDataSlot(SlotData);
         ItemDataWidget->SetItemIndex(SlotIndex);
+        ItemDataWidget->SetSlotLocationType(ESlotLocationType::Equipment);
         auto GridObject = EquipmentItemSlots->AddChildToUniformGrid(ItemDataWidget, SlotIndex / SlotsInRow, SlotIndex % SlotsInRow);
         if (!GridObject) continue;
         GridObject->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);

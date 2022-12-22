@@ -11,48 +11,9 @@ bool UAwesomeDropBoxWidget::NativeOnDrop(const FGeometry& InGeometry, const FDra
     auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
-    switch (DragDropOperation->GetSlotData().ItemLocationType)
-    {
-        case EItemLocationType::Inventory:
-        {
-            DropFromInventory(DragDropOperation->GetSlotIndex(), DragDropOperation->GetSlotData());
-            break;
-        }
-        case EItemLocationType::Equipment:
-        {
-            DropFromEquipment(DragDropOperation->GetSlotIndex(), DragDropOperation->GetSlotData());
-            break;
-        }
-    }
+    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
+    if (!Player) return true;
+    Player->MoveItem(DragDropOperation->GetSlotData(), DragDropOperation->GetItemFromLocationType(), DragDropOperation->GetFromSlotIndex(), ESlotLocationType::Environment, 0);
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
-}
-
-void UAwesomeDropBoxWidget::DropFromInventory(const uint8 Index, const FSlot& DroppedItem)
-{
-    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player) return;
-
-    if (!Player->GetBackpack()) return;
-    if (Player->GetBackpack()->RemoveAmountFromInventorySlotsAtIndex(Index, DroppedItem.Amount))
-    {
-        if (const auto AwesomePlayerController = Cast<AAwesomePlayerController>(GetOwningPlayer()))
-        {
-            AwesomePlayerController->SpawnDroppedItem(DroppedItem);
-        }
-    }
-}
-
-void UAwesomeDropBoxWidget::DropFromEquipment(const uint8 Index, const FSlot& DroppedItem)
-{
-    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player) return;
-
-    if (Player->RemoveAmountFromEquipmentSlotsAtIndex(Index, DroppedItem.Amount))
-    {
-        if (const auto AwesomePlayerController = Cast<AAwesomePlayerController>(GetOwningPlayer()))
-        {
-            AwesomePlayerController->SpawnDroppedItem(DroppedItem);
-        }
-    }
 }

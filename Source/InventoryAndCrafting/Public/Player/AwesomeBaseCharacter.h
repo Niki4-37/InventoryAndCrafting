@@ -23,6 +23,15 @@ public:
     /* used in widget */
     FOnSlotDataChangedSignature OnSlotChanged;
     FOnStuffEquipedSignature OnStuffEquiped;
+    FOnEquipmentSlotDataChangedSignature OnEquipmentSlotDataChanged;
+
+    void EquipBackpack(AAwesomeBackpackMaster* Backpack);
+    AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
+
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    bool TryAddItemToSlots(const FSlot& Item);
+    bool MoveItem(const FSlot& Item, ESlotLocationType FromLocationType, const uint8 FromSlotIndex, ESlotLocationType ToLocationType, const uint8 ToSlotIndex);
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -38,35 +47,21 @@ protected:
     FName BackpackSocketName;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-    FName ArmorSocketName;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-    TSubclassOf<AActor> ArmorClass;
+    TMap<EEquipmentType, FName> EquipmentSocketNamesMap;
 
     virtual void BeginPlay() override;
 
-public:
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-    TArray<FSlot> GetPersonalSlots() const { return PersonalSlots; };
-
-    bool TryAddItemToSlots(const FSlot& Item);
-    bool TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex);
-
-    bool MoveItem(const FSlot& Item, ESlotLocationType FromLocationType, const uint8 FromSlotIndex, ESlotLocationType ToLocationType, const uint8 ToSlotIndex);
-
-    AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
-    void EquipBackpack(AAwesomeBackpackMaster* Backpack);
-    TArray<FSlot> GetBackpackSlots() const;
-
 private:
     TArray<FSlot> PersonalSlots;
-    TArray<FSlot> EquipmentSlots;
+    TMap<EEquipmentType, FSlot> EquipmentSlotsMap;
+    UPROPERTY()
+    TMap<EEquipmentType, AActor*> EquippedItemsMap;
 
     UPROPERTY()
     AAwesomeBackpackMaster* EquipedBackpack{nullptr};
 
     void InitPersonalSlots();
+    void InitEquipmentSlots();
 
     void MoveForward(float Amount);
     void MoveRight(float Amount);
@@ -74,14 +69,16 @@ private:
     bool FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack);
     bool FindEmptySlot(uint8& OutSlotIndex);
 
+    bool TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex);
+    bool TryAddItemToEquipment(const FSlot& Item);
+
     bool RemoveAmountFromChoosenSlotsAtIndex(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountToRemove);
     bool RemoveItemFromPersonalSlots(const FSlot& Item);
-
-    // bool TryAddItemToEquipment();
+    bool RemoveItemFromEquipment(const FSlot& Item);
 
     void TakeItem();
 
     bool UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountModifier);
 
-    void EquipArmor();
+    void EquipItem(UClass* Class, UStaticMesh* NewMesh, FName SocketName, EEquipmentType Type);
 };

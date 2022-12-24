@@ -16,6 +16,28 @@ enum class ESlotLocationType : uint8
     PersonalSlots
 };
 
+// clang-format off
+UENUM(BlueprintType)
+enum class EEquipmentType : uint8
+{
+    Head,
+    RightArm,
+    LeftArm,
+    Legs,
+    Torso,
+    NotEquipment,
+
+    Begin = Head        UMETA(Hidden),
+    End = NotEquipped   UMETA(Hidden)
+};
+// clang-format on
+
+static EEquipmentType& operator++(EEquipmentType& EType)
+{
+    EType = EEquipmentType(static_cast<std::underlying_type<EEquipmentType>::type>(EType) + 1);
+    return EType;
+};
+
 USTRUCT(BlueprintType)
 struct FSlot
 {
@@ -61,6 +83,9 @@ struct FItemData : public FTableRowBase
     FString ItemType;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EEquipmentType EquipmnetType{EEquipmentType::NotEquipped};
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<AActor> ActorClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -84,4 +109,5 @@ struct FItemData : public FTableRowBase
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotDataChangedSignature, const FSlot&, const uint8);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStuffEquipedSignature, const TArray<FSlot>&, ESlotLocationType);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnEquipmentSlotDataChangedSignature, const FSlot&, EEquipmentType);
 

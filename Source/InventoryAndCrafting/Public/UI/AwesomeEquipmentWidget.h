@@ -8,6 +8,8 @@
 #include "AwesomeEquipmentWidget.generated.h"
 
 class UUniformGridPanel;
+class USizeBox;
+class UAwesomeItemDataWidget;
 /**
  *
  */
@@ -21,15 +23,25 @@ public:
 
 protected:
     UPROPERTY(meta = (BindWidget))
-    UUniformGridPanel* EquipmentItemSlots;
+    USizeBox* HeadSlotBox;
+    UPROPERTY(meta = (BindWidget))
+    USizeBox* RightArmSlotBox;
+    UPROPERTY(meta = (BindWidget))
+    USizeBox* TorsoSlotBox;
+    UPROPERTY(meta = (BindWidget))
+    USizeBox* LeftArmSlotBox;
+    UPROPERTY(meta = (BindWidget))
+    USizeBox* LegsSlotBox;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "10"))
-    uint8 SlotsInRow{2};
-
 private:
+    UPROPERTY()
+    TMap<EEquipmentType, UAwesomeItemDataWidget*> EqiupmentSlotsMap;
+
+    void InitEquipment();
+
     void OnNewPawn(APawn* NewPawn);
-    void UpdateItemSlots(const TArray<FSlot>& Slots);
+    void OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type);
 };

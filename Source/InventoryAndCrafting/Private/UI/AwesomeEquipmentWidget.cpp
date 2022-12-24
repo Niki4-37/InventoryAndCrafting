@@ -3,12 +3,16 @@
 #include "UI/AwesomeEquipmentWidget.h"
 #include "Player/AwesomeBaseCharacter.h"
 #include "UI/AwesomeItemDataWidget.h"
+#include "Components/SizeBox.h"
+
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 
 void UAwesomeEquipmentWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+
+    InitEquipment();
 
     if (GetOwningPlayer())
     {
@@ -17,33 +21,73 @@ void UAwesomeEquipmentWidget::NativeOnInitialized()
     }
 }
 
+void UAwesomeEquipmentWidget::InitEquipment()
+{
+    if (HeadSlotBox)
+    {
+        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        if (SlotWidget)
+        {
+            HeadSlotBox->AddChild(SlotWidget);
+            EqiupmentSlotsMap.Add(EEquipmentType::Head, SlotWidget);
+        }
+    }
+    if (RightArmSlotBox)
+    {
+        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        if (SlotWidget)
+        {
+            RightArmSlotBox->AddChild(SlotWidget);
+            EqiupmentSlotsMap.Add(EEquipmentType::RightArm, SlotWidget);
+        }
+    }
+    if (TorsoSlotBox)
+    {
+        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        if (SlotWidget)
+        {
+            TorsoSlotBox->AddChild(SlotWidget);
+            EqiupmentSlotsMap.Add(EEquipmentType::Torso, SlotWidget);
+        }
+    }
+    if (LeftArmSlotBox)
+    {
+        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        if (SlotWidget)
+        {
+            LeftArmSlotBox->AddChild(SlotWidget);
+            EqiupmentSlotsMap.Add(EEquipmentType::LeftArm, SlotWidget);
+        }
+    }
+    if (LegsSlotBox)
+    {
+        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        if (SlotWidget)
+        {
+            LegsSlotBox->AddChild(SlotWidget);
+            EqiupmentSlotsMap.Add(EEquipmentType::Legs, SlotWidget);
+        }
+    }
+
+    for (TPair<EEquipmentType, UAwesomeItemDataWidget*>& Element : EqiupmentSlotsMap)
+    {
+        Element.Value->SetSlotLocationType(ESlotLocationType::Equipment);
+    }
+}
+
 void UAwesomeEquipmentWidget::OnNewPawn(APawn* NewPawn)
 {
     const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
     if (!Player) return;
-
-    // Player->OnSlotsChanged.AddUObject(this, &UAwesomeEquipmentWidget::UpdateItemSlots);
-
-    UpdateItemSlots(Player->GetPersonalSlots());
+    if (!Player->OnEquipmentSlotDataChanged.IsBoundToObject(this))
+    {
+        Player->OnEquipmentSlotDataChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged);
+    }
 }
 
-void UAwesomeEquipmentWidget::UpdateItemSlots(const TArray<FSlot>& Slots)
+void UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type)
 {
-    if (!EquipmentItemSlots) return;
-    EquipmentItemSlots->ClearChildren();
-
-    uint8 SlotIndex{0};
-    for (const auto& SlotData : Slots)
-    {
-        auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
-        if (!ItemDataWidget) continue;
-        ItemDataWidget->SetDataSlot(SlotData);
-        ItemDataWidget->SetItemIndex(SlotIndex);
-        ItemDataWidget->SetSlotLocationType(ESlotLocationType::Equipment);
-        auto GridObject = EquipmentItemSlots->AddChildToUniformGrid(ItemDataWidget, SlotIndex / SlotsInRow, SlotIndex % SlotsInRow);
-        if (!GridObject) continue;
-        GridObject->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-        GridObject->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
-        ++SlotIndex;
-    }
+    auto SlotWidget = EqiupmentSlotsMap.FindChecked(Type);
+    if (!SlotWidget) return;
+    SlotWidget->SetDataSlot(NewSlotData);
 }

@@ -72,6 +72,7 @@ void UAwesomeEquipmentWidget::InitEquipment()
     for (TPair<EEquipmentType, UAwesomeItemDataWidget*>& Element : EqiupmentSlotsMap)
     {
         Element.Value->SetSlotLocationType(ESlotLocationType::Equipment);
+        Element.Value->SetEquipmentType(Element.Key);
     }
 }
 

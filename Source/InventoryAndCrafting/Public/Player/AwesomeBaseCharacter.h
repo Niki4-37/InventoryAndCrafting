@@ -31,7 +31,13 @@ public:
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
     bool TryAddItemToSlots(const FSlot& Item);
-    bool MoveItem(const FSlot& Item, ESlotLocationType FromLocationType, const uint8 FromSlotIndex, ESlotLocationType ToLocationType, const uint8 ToSlotIndex);
+    bool MoveItem(const FSlot& Item,                   //
+                  ESlotLocationType FromLocationType,  //
+                  EEquipmentType FromEquipmentType,    //
+                  const uint8 FromSlotIndex,           //
+                  ESlotLocationType ToLocationType,    //
+                  EEquipmentType ToEquipmentType,      //
+                  const uint8 ToSlotIndex);
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -70,11 +76,12 @@ private:
     bool FindEmptySlot(uint8& OutSlotIndex);
 
     bool TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex);
-    bool TryAddItemToEquipment(const FSlot& Item);
+    bool TryAddItemToEquipment(const FSlot& Item, EEquipmentType ToEquipmentType);
+    bool CheckForWeapon(EEquipmentType& WeaponEquipmentType, EEquipmentType ToEquipmentType);
 
     bool RemoveAmountFromChoosenSlotsAtIndex(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountToRemove);
     bool RemoveItemFromPersonalSlots(const FSlot& Item);
-    bool RemoveItemFromEquipment(const FSlot& Item);
+    bool RemoveItemFromEquipment(const FSlot& Item, EEquipmentType FromEquipmentType);
 
     void TakeItem();
 

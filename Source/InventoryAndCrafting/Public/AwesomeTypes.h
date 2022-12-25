@@ -21,14 +21,14 @@ UENUM(BlueprintType)
 enum class EEquipmentType : uint8
 {
     Head,
-    RightArm,
+    RightArm            UMETA(ToolTip="choose this for all main weapons"),
     LeftArm,
     Legs,
     Torso,
     NotEquipment,
 
     Begin = Head        UMETA(Hidden),
-    End = NotEquipped   UMETA(Hidden)
+    End = NotEquipment  UMETA(Hidden)
 };
 // clang-format on
 
@@ -66,6 +66,11 @@ struct FSlot
         , Amount(InAmount)
     {}
     //clang-format on
+
+    bool operator==(const FSlot& S) const
+    {
+        return DataTableRowHandle == S.DataTableRowHandle;
+    }
 };
 
 USTRUCT(BlueprintType)
@@ -80,10 +85,7 @@ struct FItemData : public FTableRowBase
     FString Description;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FString ItemType;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    EEquipmentType EquipmnetType{EEquipmentType::NotEquipped};
+    EEquipmentType EquipmnetType{EEquipmentType::NotEquipment};
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<AActor> ActorClass;
@@ -110,4 +112,3 @@ struct FItemData : public FTableRowBase
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotDataChangedSignature, const FSlot&, const uint8);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStuffEquipedSignature, const TArray<FSlot>&, ESlotLocationType);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnEquipmentSlotDataChangedSignature, const FSlot&, EEquipmentType);
-

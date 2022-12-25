@@ -27,6 +27,7 @@ public:
 
     void SetItemIndex(uint8 Index) { ItemIndex = Index; };
     void SetSlotLocationType(ESlotLocationType Type) { LocationType = Type; };
+    void SetEquipmentType(EEquipmentType Type) { EquipmentType = Type; };
 
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
@@ -47,6 +48,7 @@ private:
     FSlot SlotData;
     uint8 ItemIndex;
     ESlotLocationType LocationType;
+    EEquipmentType EquipmentType;
 
     void SetIconToWidget();
 };

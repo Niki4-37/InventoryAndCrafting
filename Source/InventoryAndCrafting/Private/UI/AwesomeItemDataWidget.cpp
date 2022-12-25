@@ -41,6 +41,7 @@ void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
         DragDrop->SetSlotData(FSlot(SlotData.DataTableRowHandle, 1));
         DragDrop->SetFromSlotIndex(ItemIndex);
         DragDrop->SetFromSlotLocationType(LocationType);
+        DragDrop->SetFromEquipmentType(EquipmentType);
         auto DradDropWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (DradDropWidget)
         {
@@ -64,8 +65,10 @@ bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 
     Player->MoveItem(DragDropOperation->GetSlotData(),              //
                      DragDropOperation->GetItemFromLocationType(),  //
+                     DragDropOperation->GetFromEquipmentType(),     //
                      DragDropOperation->GetFromSlotIndex(),         //
                      LocationType,                                  //
+                     EquipmentType,                                 //
                      ItemIndex);
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);

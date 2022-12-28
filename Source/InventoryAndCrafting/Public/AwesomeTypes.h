@@ -109,6 +109,38 @@ struct FItemData : public FTableRowBase
     int32 OutCraftedAmount;
 };
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotDataChangedSignature, const FSlot&, const uint8);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnSlotDataChangedSignature, const FSlot&, const uint8, ESlotLocationType);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStuffEquipedSignature, const TArray<FSlot>&, ESlotLocationType);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnEquipmentSlotDataChangedSignature, const FSlot&, EEquipmentType);
+
+USTRUCT()
+struct FEquipmentSlot
+{
+    GENERATED_USTRUCT_BODY()
+
+    EEquipmentType EquipmentType;
+    UPROPERTY()
+    FDataTableRowHandle DataTableRowHandle;
+    int32 Amount;
+
+    FEquipmentSlot(EEquipmentType Type = EEquipmentType::End, FDataTableRowHandle DataTable = FDataTableRowHandle(), int32 InAmount = 0)
+    : EquipmentType(Type), DataTableRowHandle(DataTable), Amount(InAmount)
+    { }
+
+    FEquipmentSlot(FEquipmentSlot&& InSlot)
+    : EquipmentType(InSlot.EquipmentType), DataTableRowHandle(InSlot.DataTableRowHandle), Amount(InSlot.Amount)
+    { }
+
+    FEquipmentSlot(const FEquipmentSlot& InSlot)
+    : EquipmentType(InSlot.EquipmentType), DataTableRowHandle(InSlot.DataTableRowHandle), Amount(InSlot.Amount)
+    { }
+
+    FEquipmentSlot& operator=(const FEquipmentSlot& InSlot)
+    {
+        EquipmentType = InSlot.EquipmentType;
+        DataTableRowHandle = InSlot.DataTableRowHandle;
+        Amount = InSlot.Amount;
+
+        return *this;
+    }
+};

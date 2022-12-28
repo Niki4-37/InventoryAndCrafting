@@ -2,10 +2,12 @@
 
 #include "Pickup/AwesomePickupMaster.h"
 #include "Player/AwesomeBaseCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 AAwesomePickupMaster::AAwesomePickupMaster()
 {
-    // InitPickup();
+    bReplicates = true;
+    GetStaticMeshComponent()->SetIsReplicated(true);
 }
 
 void AAwesomePickupMaster::BeginPlay()
@@ -13,19 +15,20 @@ void AAwesomePickupMaster::BeginPlay()
     Super::BeginPlay();
 
     InitPickup();
+}
 
-    GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-    GetStaticMeshComponent()->SetSimulatePhysics(true);
+void AAwesomePickupMaster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AAwesomePickupMaster, PickupItem);
 }
 
 void AAwesomePickupMaster::Interact(AActor* InteractiveActor)
 {
     const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
     if (!Player) return;
-    if (Player->TryAddItemToSlots(PickupItem))
-    {
-        Destroy();
-    }
+    Player->PickupItem_OnServer(this);
 }
 
 void AAwesomePickupMaster::InitPickup()
@@ -36,4 +39,6 @@ void AAwesomePickupMaster::InitPickup()
 
     if (!GetStaticMeshComponent() || !PickupData.Mesh) return;
     GetStaticMeshComponent()->SetStaticMesh(PickupData.Mesh);
+    GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
+    GetStaticMeshComponent()->SetSimulatePhysics(true);
 }

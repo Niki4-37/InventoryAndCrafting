@@ -13,13 +13,14 @@ bool UAwesomeDropBoxWidget::NativeOnDrop(const FGeometry& InGeometry, const FDra
 
     const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
     if (!Player) return true;
-    Player->MoveItem(DragDropOperation->GetSlotData(),              //
-                     DragDropOperation->GetItemFromLocationType(),  //
-                     DragDropOperation->GetFromEquipmentType(),     //
-                     DragDropOperation->GetFromSlotIndex(),         //
-                     ESlotLocationType::Environment,                //
-                     EEquipmentType::NotEquipment,                  //
-                     0);
+
+    Player->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
+                              DragDropOperation->GetItemFromLocationType(),  //
+                              DragDropOperation->GetFromEquipmentType(),     //
+                              DragDropOperation->GetFromSlotIndex(),         //
+                              ESlotLocationType::Environment,                //
+                              EEquipmentType::NotEquipment,                  //
+                              0);
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }

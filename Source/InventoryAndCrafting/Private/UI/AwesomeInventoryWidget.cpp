@@ -26,11 +26,9 @@ void UAwesomeInventoryWidget::OnNewPawn(APawn* NewPawn)
     {
         Player->OnStuffEquiped.AddUObject(this, &UAwesomeInventoryWidget::OnStuffEquiped);
     }
-
-    if (!Player->GetBackpack()) return;
-    if (!Player->GetBackpack()->OnSlotChanged.IsBoundToObject(this))
+    if (!Player->OnSlotChanged.IsBoundToObject(this))
     {
-        Player->GetBackpack()->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
+        Player->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
     }
 }
 
@@ -53,18 +51,11 @@ void UAwesomeInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLo
         GridObject->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
         ++SlotIndex;
     }
-
-    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player || !Player->GetBackpack()) return;
-    if (!Player->GetBackpack()->OnSlotChanged.IsBoundToObject(this))
-    {
-        Player->GetBackpack()->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
-    }
 }
 
-void UAwesomeInventoryWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex)
+void UAwesomeInventoryWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type)
 {
-    if (!InventoryItemSlots) return;
+    if (!InventoryItemSlots || Type != ESlotLocationType::Inventory) return;
     auto ItemDataWidget = Cast<UAwesomeItemDataWidget>(InventoryItemSlots->GetChildAt(SlotIndex));
     if (!ItemDataWidget) return;
     ItemDataWidget->SetDataSlot(NewSlotData);

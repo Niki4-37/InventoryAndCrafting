@@ -2,9 +2,12 @@
 
 #include "Pickup/AwesomeBackpackMaster.h"
 #include "Player/AwesomeBaseCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 AAwesomeBackpackMaster::AAwesomeBackpackMaster()
 {
+    bReplicates = true;
+    SetReplicatingMovement(true);
     GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
     FCollisionResponseContainer ResponseContainer;
     ResponseContainer.SetResponse(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -17,7 +20,7 @@ void AAwesomeBackpackMaster::Interact(AActor* InteractiveActor)
     const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
     if (!Player) return;
 
-    Player->EquipBackpack(this);
+    Player->EquipBackpack_OnServer(this);
 }
 
 bool AAwesomeBackpackMaster::FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack)
@@ -111,10 +114,21 @@ void AAwesomeBackpackMaster::BeginPlay()
 {
     Super::BeginPlay();
 
-    InitBackpack();
+    if (GetRemoteRole() == ENetRole::ROLE_SimulatedProxy)
+    {
+        InitBackpack_OnServer();
+    }
 }
 
-void AAwesomeBackpackMaster::InitBackpack()
+void AAwesomeBackpackMaster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AAwesomeBackpackMaster, BackpackSlots);
+    DOREPLIFETIME(AAwesomeBackpackMaster, BackpackSlotsNumber);
+}
+
+void AAwesomeBackpackMaster::InitBackpack_OnServer_Implementation()
 {
     for (uint8 Index = 0; Index < BackpackSlotsNumber; ++Index)
     {
@@ -131,6 +145,14 @@ bool AAwesomeBackpackMaster::UpdateSlotItemData(const uint8 Index, const int32 A
     {
         BackpackSlots[Index] = FSlot();
     }
-    OnSlotChanged.Broadcast(BackpackSlots[Index], Index);
+    UpdateOwnerWidget(BackpackSlots[Index], Index);
+    UE_LOG(LogTemp, Display, TEXT("%s added to slot %i"), *BackpackSlots[Index].DataTableRowHandle.RowName.ToString(), Index);
     return true;
+}
+
+void AAwesomeBackpackMaster::UpdateOwnerWidget(const FSlot& Item, const uint8 Index)
+{
+    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwner());
+    if (!Player) return;
+    Player->UpdateInventoryWidgetSlotData(Item, Index);
 }

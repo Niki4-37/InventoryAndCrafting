@@ -22,8 +22,14 @@ void UAwesomePersonalSlotsWidget::OnNewPawn(APawn* NewPawn)
     const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
     if (!Player) return;
 
-    Player->OnSlotChanged.AddUObject(this, &UAwesomePersonalSlotsWidget::UpdateItemSlot);
-    Player->OnStuffEquiped.AddUObject(this, &UAwesomePersonalSlotsWidget::OnStuffEquiped);
+    if (!Player->OnStuffEquiped.IsBoundToObject(this))
+    {
+        Player->OnStuffEquiped.AddUObject(this, &UAwesomePersonalSlotsWidget::OnStuffEquiped);
+    }
+    if (!Player->OnSlotChanged.IsBoundToObject(this))
+    {
+        Player->OnSlotChanged.AddUObject(this, &UAwesomePersonalSlotsWidget::UpdateItemSlot);
+    }
 }
 
 void UAwesomePersonalSlotsWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type)
@@ -47,9 +53,9 @@ void UAwesomePersonalSlotsWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESl
     }
 }
 
-void UAwesomePersonalSlotsWidget::UpdateItemSlot(const FSlot& NewSlotData, const uint8 SlotIndex)
+void UAwesomePersonalSlotsWidget::UpdateItemSlot(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type)
 {
-    if (!PersonalSlots) return;
+    if (!PersonalSlots || Type != ESlotLocationType::PersonalSlots) return;
     auto ItemDataWidget = Cast<UAwesomeItemDataWidget>(PersonalSlots->GetChildAt(SlotIndex));
     if (!ItemDataWidget) return;
     ItemDataWidget->SetDataSlot(NewSlotData);

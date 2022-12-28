@@ -24,13 +24,17 @@ public:
 
     /* Interface function */
     virtual void Interact(AActor* InteractiveActor) override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(ReplicatedUsing = PickupItem_OnRep, EditAnywhere, BlueprintReadWrite)
     FSlot PickupItem;
 
     virtual void BeginPlay() override;
 
 private:
     void InitPickup();
+
+    UFUNCTION()
+    void PickupItem_OnRep() { InitPickup(); }
 };

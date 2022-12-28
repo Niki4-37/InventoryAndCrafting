@@ -63,13 +63,13 @@ bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
     const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
     if (!Player) return true;
 
-    Player->MoveItem(DragDropOperation->GetSlotData(),              //
-                     DragDropOperation->GetItemFromLocationType(),  //
-                     DragDropOperation->GetFromEquipmentType(),     //
-                     DragDropOperation->GetFromSlotIndex(),         //
-                     LocationType,                                  //
-                     EquipmentType,                                 //
-                     ItemIndex);
+    Player->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
+                              DragDropOperation->GetItemFromLocationType(),  //
+                              DragDropOperation->GetFromEquipmentType(),     //
+                              DragDropOperation->GetFromSlotIndex(),         //
+                              LocationType,                                  //
+                              EquipmentType,                                 //
+                              ItemIndex);
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }

@@ -18,7 +18,6 @@ class INVENTORYANDCRAFTING_API AAwesomeBackpackMaster : public AStaticMeshActor,
 
 public:
     AAwesomeBackpackMaster();
-    FOnSlotDataChangedSignature OnSlotChanged;
 
     virtual void Interact(AActor* InteractiveActor) override;
 
@@ -29,14 +28,20 @@ public:
     bool RemoveAmountFromInventorySlotsAtIndex(const uint8 Index, const int32 AmountToRemove);
 
 protected:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "25"))
+    UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "25"))
     uint8 BackpackSlotsNumber{15};
 
     virtual void BeginPlay() override;
+    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+    UPROPERTY(Replicated)
     TArray<FSlot> BackpackSlots;
 
-    void InitBackpack();
+    UFUNCTION(Server, Reliable)
+    void InitBackpack_OnServer();
+
     bool UpdateSlotItemData(const uint8 Index, const int32 AmountModifier);
+
+    void UpdateOwnerWidget(const FSlot& Item, const uint8 Index);
 };

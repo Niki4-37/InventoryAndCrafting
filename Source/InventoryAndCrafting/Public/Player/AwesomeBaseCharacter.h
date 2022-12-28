@@ -11,6 +11,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class AAwesomeBackpackMaster;
+class AAwesomePickupMaster;
 
 UCLASS()
 class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter, public IAwesomeInteractionInterface
@@ -25,19 +26,26 @@ public:
     FOnStuffEquipedSignature OnStuffEquiped;
     FOnEquipmentSlotDataChangedSignature OnEquipmentSlotDataChanged;
 
-    void EquipBackpack(AAwesomeBackpackMaster* Backpack);
+    UFUNCTION(Server, Reliable)
+    void EquipBackpack_OnServer(AAwesomeBackpackMaster* Backpack);
+
     AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
 
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-    bool TryAddItemToSlots(const FSlot& Item);
-    bool MoveItem(const FSlot& Item,                   //
-                  ESlotLocationType FromLocationType,  //
-                  EEquipmentType FromEquipmentType,    //
-                  const uint8 FromSlotIndex,           //
-                  ESlotLocationType ToLocationType,    //
-                  EEquipmentType ToEquipmentType,      //
-                  const uint8 ToSlotIndex);
+    UFUNCTION(Server, Reliable)
+    void PickupItem_OnServer(AAwesomePickupMaster* Pickup);
+
+    UFUNCTION(Server, Reliable)
+    void MoveItem_OnServer(const FSlot& Item,                   //
+                           ESlotLocationType FromLocationType,  //
+                           EEquipmentType FromEquipmentType,    //
+                           const uint8 FromSlotIndex,           //
+                           ESlotLocationType ToLocationType,    //
+                           EEquipmentType ToEquipmentType,      //
+                           const uint8 ToSlotIndex);
+
+    void UpdateInventoryWidgetSlotData(const FSlot& Item, const uint8 Index);
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -46,7 +54,7 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UCameraComponent* CameraComponent;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
+    UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
     uint8 PersonalSlotsNumber{4};
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -56,18 +64,22 @@ protected:
     TMap<EEquipmentType, FName> EquipmentSocketNamesMap;
 
     virtual void BeginPlay() override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+    UPROPERTY(Replicated)
     TArray<FSlot> PersonalSlots;
-    TMap<EEquipmentType, FSlot> EquipmentSlotsMap;
+    UPROPERTY(Replicated)
+    TArray<FEquipmentSlot> EquipmentSlots;
+
     UPROPERTY()
     TMap<EEquipmentType, AActor*> EquippedItemsMap;
 
-    UPROPERTY()
+    UPROPERTY(Replicated)
     AAwesomeBackpackMaster* EquipedBackpack{nullptr};
 
-    void InitPersonalSlots();
-    void InitEquipmentSlots();
+    UFUNCTION(Server, Reliable)
+    void InitEnableSlots_OnServer();
 
     void MoveForward(float Amount);
     void MoveRight(float Amount);
@@ -75,6 +87,7 @@ private:
     bool FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack);
     bool FindEmptySlot(uint8& OutSlotIndex);
 
+    bool TryAddItemToSlots(const FSlot& Item);
     bool TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex);
     bool TryAddItemToEquipment(const FSlot& Item, EEquipmentType ToEquipmentType);
     bool CheckForWeapon(EEquipmentType& WeaponEquipmentType, EEquipmentType ToEquipmentType);
@@ -88,4 +101,16 @@ private:
     bool UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountModifier);
 
     void EquipItem(UClass* Class, UStaticMesh* NewMesh, FName SocketName, EEquipmentType Type);
+
+    UFUNCTION(Client, Reliable)
+    void OnStuffEquiped_OnClient(const TArray<FSlot>& Slots, ESlotLocationType Type);
+
+    UFUNCTION(Client, Reliable)
+    void OnSlotChanged_OnClient(const FSlot& Item, const uint8 Index, ESlotLocationType Type);
+
+    UFUNCTION(Client, Reliable)
+    void OnEquipmentSlotDataChanged_OnClient(const FSlot& Item, EEquipmentType Type);
+
+    UFUNCTION(NetMulticast, Reliable)
+    void SetStaticMesh_Multicast(AAwesomeEquipmentActor* Actor, UStaticMesh* NewMesh);
 };

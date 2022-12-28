@@ -5,8 +5,10 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Pickup/AwesomeBackpackMaster.h"
+#include "Pickup/AwesomePickupMaster.h"
 #include "Player/AwesomePlayerController.h"
 #include "Equipment/AwesomeEquipmentActor.h"
+#include "Net/UnrealNetwork.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -15,6 +17,7 @@ DEFINE_LOG_CATEGORY_STATIC(AwesomeCharacter, All, All);
 AAwesomeBaseCharacter::AAwesomeBaseCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
+    bReplicates = true;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
     SpringArmComponent->SetupAttachment(GetRootComponent());
@@ -24,7 +27,7 @@ AAwesomeBaseCharacter::AAwesomeBaseCharacter()
     CameraComponent->SetupAttachment(SpringArmComponent);
 }
 
-void AAwesomeBaseCharacter::EquipBackpack(AAwesomeBackpackMaster* Backpack)
+void AAwesomeBaseCharacter::EquipBackpack_OnServer_Implementation(AAwesomeBackpackMaster* Backpack)
 {
     if (!Backpack) return;
 
@@ -40,15 +43,31 @@ void AAwesomeBaseCharacter::EquipBackpack(AAwesomeBackpackMaster* Backpack)
     FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
     EquipedBackpack->AttachToComponent(GetMesh(), AttachmentRules, BackpackSocketName);
 
-    OnStuffEquiped.Broadcast(EquipedBackpack->GetBackpackSlots(), ESlotLocationType::Inventory);
+    EquipedBackpack->SetOwner(this);
+
+    OnStuffEquiped_OnClient(EquipedBackpack->GetBackpackSlots(), ESlotLocationType::Inventory);
 }
 
 void AAwesomeBaseCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
-    InitPersonalSlots();
-    InitEquipmentSlots();
+    if (HasAuthority())
+    {
+        InitEnableSlots_OnServer();
+    }
+
+    OnStuffEquiped.Broadcast(PersonalSlots, ESlotLocationType::PersonalSlots);
+}
+
+void AAwesomeBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AAwesomeBaseCharacter, EquipedBackpack);
+    DOREPLIFETIME(AAwesomeBaseCharacter, PersonalSlotsNumber);
+    DOREPLIFETIME(AAwesomeBaseCharacter, PersonalSlots);
+    DOREPLIFETIME(AAwesomeBaseCharacter, EquipmentSlots);
 }
 
 void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -63,8 +82,23 @@ void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
     PlayerInputComponent->BindAction("TakeItem", IE_Pressed, this, &AAwesomeBaseCharacter::TakeItem);
 }
 
+void AAwesomeBaseCharacter::UpdateInventoryWidgetSlotData(const FSlot& Item, const uint8 Index)
+{
+    OnSlotChanged_OnClient(Item, Index, ESlotLocationType::Inventory);
+}
+
+void AAwesomeBaseCharacter::PickupItem_OnServer_Implementation(AAwesomePickupMaster* Pickup)
+{
+    if (!Pickup) return;
+    if (TryAddItemToSlots(Pickup->GetPickupItem()))
+    {
+        Pickup->Destroy();
+    }
+}
+
 bool AAwesomeBaseCharacter::TryAddItemToSlots(const FSlot& Item)
 {
+    /* handle on server */
     uint8 FoundSlotIndex;
     int32 FoundAmount;
     bool bCanStack;
@@ -102,13 +136,13 @@ bool AAwesomeBaseCharacter::TryAddItemToSlots(const FSlot& Item)
     }
 }
 
-bool AAwesomeBaseCharacter::MoveItem(const FSlot& Item,                   //
-                                     ESlotLocationType FromLocationType,  //
-                                     EEquipmentType FromEquipmentType,    //
-                                     const uint8 FromSlotIndex,           //
-                                     ESlotLocationType ToLocationType,    //
-                                     EEquipmentType ToEquipmentType,      //
-                                     const uint8 ToSlotIndex)
+void AAwesomeBaseCharacter::MoveItem_OnServer_Implementation(const FSlot& Item,                   //
+                                                             ESlotLocationType FromLocationType,  //
+                                                             EEquipmentType FromEquipmentType,    //
+                                                             const uint8 FromSlotIndex,           //
+                                                             ESlotLocationType ToLocationType,    //
+                                                             EEquipmentType ToEquipmentType,      //
+                                                             const uint8 ToSlotIndex)
 {
     UE_LOG(AwesomeCharacter, Display, TEXT("MoveItem from %s slot %i to %s slot %i amount: %i"), *UEnum::GetValueAsString(FromLocationType), FromSlotIndex, *UEnum::GetValueAsString(ToLocationType),
            ToSlotIndex, Item.Amount);
@@ -117,7 +151,7 @@ bool AAwesomeBaseCharacter::MoveItem(const FSlot& Item,                   //
     {
         case (ESlotLocationType::Inventory):
         {
-            if (!GetBackpack()) return false;
+            if (!GetBackpack()) return;
             bMoveSuccess = GetBackpack()->TryAddItemToSlots(Item);
             break;
         }
@@ -126,7 +160,7 @@ bool AAwesomeBaseCharacter::MoveItem(const FSlot& Item,                   //
         case (ESlotLocationType::Environment):
         {
             const auto AwesomePlayerController = Cast<AAwesomePlayerController>(Controller);
-            if (!AwesomePlayerController) return false;
+            if (!AwesomePlayerController) return;
             AwesomePlayerController->SpawnDroppedItem(Item);
             bMoveSuccess = true;
             break;
@@ -135,43 +169,39 @@ bool AAwesomeBaseCharacter::MoveItem(const FSlot& Item,                   //
         default: bMoveSuccess = false;
     }
 
-    if (!bMoveSuccess) return false;
+    if (!bMoveSuccess) return;
 
     switch (FromLocationType)
     {
         case (ESlotLocationType::Inventory):
         {
-            if (!GetBackpack()) return false;
+            if (!GetBackpack()) return;
             GetBackpack()->RemoveAmountFromInventorySlotsAtIndex(FromSlotIndex, Item.Amount);
             break;
         }
         case (ESlotLocationType::PersonalSlots): RemoveAmountFromChoosenSlotsAtIndex(PersonalSlots, FromSlotIndex, Item.Amount); break;
         case (ESlotLocationType::Equipment): RemoveItemFromEquipment(Item, FromEquipmentType); break;
     }
-
-    return bMoveSuccess;
 }
 
-void AAwesomeBaseCharacter::InitPersonalSlots()
+void AAwesomeBaseCharacter::InitEnableSlots_OnServer_Implementation()
 {
     for (uint8 Index = 0; Index < PersonalSlotsNumber; ++Index)
     {
         PersonalSlots.Add(FSlot());
     }
-    OnStuffEquiped.Broadcast(PersonalSlots, ESlotLocationType::PersonalSlots);
-}
 
-void AAwesomeBaseCharacter::InitEquipmentSlots()
-{
-    for (EEquipmentType EquipmentSlot = EEquipmentType::Begin; EquipmentSlot != EEquipmentType::End; ++EquipmentSlot)
+    for (EEquipmentType EquipmentType = EEquipmentType::Begin; EquipmentType != EEquipmentType::End; ++EquipmentType)
     {
-        EquipmentSlotsMap.Add(EquipmentSlot, FSlot());
-        // UE_LOG(AwesomeCharacter, Display, TEXT("%s"), *UEnum::GetValueAsString(EquipmentSlot));
+        EquipmentSlots.Add(FEquipmentSlot(EquipmentType, FDataTableRowHandle(), 0));
+        UE_LOG(AwesomeCharacter, Display, TEXT("%s"), *UEnum::GetValueAsString(EquipmentType));
     }
+    FVector;
 }
 
 bool AAwesomeBaseCharacter::TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex)
 {
+    /* handle on server */
     if (!PersonalSlots.IsValidIndex(InIndex)) return false;
 
     if (!PersonalSlots[InIndex].Amount)
@@ -195,38 +225,46 @@ bool AAwesomeBaseCharacter::TryAddItemToPersonalSlotsByIndex(const FSlot& Item, 
 
 bool AAwesomeBaseCharacter::TryAddItemToEquipment(const FSlot& Item, EEquipmentType ToEquipmentType)
 {
+    /* handle on server */
     const auto ItemDataPointer = Item.DataTableRowHandle.GetRow<FItemData>("");
     if (!ItemDataPointer) return false;
     const auto ItemData = *ItemDataPointer;
     auto ItemEquipmentType = ItemData.EquipmnetType;
+    if (ItemData.EquipmnetType == EEquipmentType::NotEquipment) return false;
 
     CheckForWeapon(ItemEquipmentType, ToEquipmentType);
 
-    auto FoundSlot = EquipmentSlotsMap.FindRef(ItemEquipmentType);
+    auto FoundSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == ToEquipmentType; });
+    if (!FoundSlotPtr) return false;
+
+    auto FoundSlot = *FoundSlotPtr;
+
     if (FoundSlot.Amount)
     {
         UE_LOG(AwesomeCharacter, Display, TEXT("Slot occupied"));
-        if (TryAddItemToSlots(FoundSlot))
+        if (TryAddItemToSlots(FSlot(FoundSlot.DataTableRowHandle, FoundSlot.Amount)))
         {
-            RemoveItemFromEquipment(FoundSlot, ItemEquipmentType);
+            RemoveItemFromEquipment(FSlot(FoundSlot.DataTableRowHandle, FoundSlot.Amount), ItemEquipmentType);
         }
         else
             return false;
     }
-    EquipmentSlotsMap.Emplace(ItemEquipmentType, Item);
-    OnEquipmentSlotDataChanged.Broadcast(Item, ItemEquipmentType);
+    *FoundSlotPtr = FEquipmentSlot(ItemEquipmentType, Item.DataTableRowHandle, Item.Amount);
+
+    OnEquipmentSlotDataChanged_OnClient(Item, ItemEquipmentType);
     const auto SocketName = EquipmentSocketNamesMap.FindChecked(ItemEquipmentType);
     EquipItem(ItemData.ActorClass, ItemData.Mesh, SocketName, ItemEquipmentType);
 
-    for (TPair<EEquipmentType, FSlot>& Element : EquipmentSlotsMap)
+    for (const auto& Element : EquipmentSlots)
     {
-        UE_LOG(AwesomeCharacter, Display, TEXT("%s equiped %s amount %i"), *UEnum::GetValueAsString(Element.Key), *Element.Value.DataTableRowHandle.RowName.ToString(), Element.Value.Amount);
+        UE_LOG(AwesomeCharacter, Display, TEXT("%s equiped %s amount %i"), *UEnum::GetValueAsString(Element.EquipmentType), *Element.DataTableRowHandle.RowName.ToString(), Element.Amount);
     }
     return true;
 }
 
 bool AAwesomeBaseCharacter::CheckForWeapon(EEquipmentType& WeaponEquipmentType, EEquipmentType ToEquipmentType)
 {
+    /* handle on server */
     if (WeaponEquipmentType == EEquipmentType::RightArm && ToEquipmentType == EEquipmentType::RightArm) return true;
 
     if (WeaponEquipmentType == EEquipmentType::RightArm && ToEquipmentType == EEquipmentType::LeftArm)
@@ -240,11 +278,13 @@ bool AAwesomeBaseCharacter::CheckForWeapon(EEquipmentType& WeaponEquipmentType, 
 
 bool AAwesomeBaseCharacter::RemoveAmountFromChoosenSlotsAtIndex(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountToRemove)
 {
+    /* handle on server */
     return UpdateSlotItemData(Slots, Index, -AmountToRemove);
 }
 
 bool AAwesomeBaseCharacter::RemoveItemFromPersonalSlots(const FSlot& Item)
 {
+    /* handle on server */
     uint8 FoundSlotIndex;
     int32 FoundAmount;
     bool bCanStack;
@@ -258,20 +298,21 @@ bool AAwesomeBaseCharacter::RemoveItemFromPersonalSlots(const FSlot& Item)
 
 bool AAwesomeBaseCharacter::RemoveItemFromEquipment(const FSlot& Item, EEquipmentType FromEquipmentType)
 {
-    // const auto KeyPionter = EquipmentSlotsMap.FindKey(Item);
-    // if (!KeyPionter) return false;
-    // auto FoundKey = *KeyPionter;
+    /* handle on server */
+    auto FoundSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == FromEquipmentType; });
+    if (!FoundSlotPtr) return false;
+    auto FoundSlot = *FoundSlotPtr;
+    *FoundSlotPtr = FEquipmentSlot(FromEquipmentType, FDataTableRowHandle(), 0);
 
-    EquipmentSlotsMap.Emplace(FromEquipmentType, FSlot());
-    OnEquipmentSlotDataChanged.Broadcast(FSlot(), FromEquipmentType);
+    OnEquipmentSlotDataChanged_OnClient(FSlot(), FromEquipmentType);
     if (auto EquippedItem = EquippedItemsMap.FindAndRemoveChecked(FromEquipmentType))
     {
         EquippedItem->Destroy();
     }
 
-    for (TPair<EEquipmentType, FSlot>& Element : EquipmentSlotsMap)
+    for (const auto& Element : EquipmentSlots)
     {
-        UE_LOG(AwesomeCharacter, Display, TEXT("%s equiped %s amount %i"), *UEnum::GetValueAsString(Element.Key), *Element.Value.DataTableRowHandle.RowName.ToString(), Element.Value.Amount);
+        UE_LOG(AwesomeCharacter, Display, TEXT("%s equiped %s amount %i"), *UEnum::GetValueAsString(Element.EquipmentType), *Element.DataTableRowHandle.RowName.ToString(), Element.Amount);
     }
     return false;
 }
@@ -288,6 +329,7 @@ void AAwesomeBaseCharacter::MoveRight(float Amount)
 
 bool AAwesomeBaseCharacter::FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack)
 {
+    /* handle on server */
     OutSlotIndex = -1;
     OutAmount = -1;
     bOutCanStack = false;
@@ -319,6 +361,7 @@ bool AAwesomeBaseCharacter::FindStackOfSameItems(const FSlot& Item, uint8& OutSl
 
 bool AAwesomeBaseCharacter::FindEmptySlot(uint8& OutSlotIndex)
 {
+    /* handle on server */
     OutSlotIndex = -1;
     if (!PersonalSlots.Num()) return false;
 
@@ -365,6 +408,7 @@ void AAwesomeBaseCharacter::TakeItem()
 
 bool AAwesomeBaseCharacter::UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountModifier)
 {
+    /* handle on server */
     if (!Slots.IsValidIndex(Index)) return false;
     const auto Result = Slots[Index].Amount + AmountModifier;
     if (Result > 99) return false;
@@ -374,17 +418,43 @@ bool AAwesomeBaseCharacter::UpdateSlotItemData(TArray<FSlot>& Slots, const uint8
         Slots[Index] = FSlot();
     }
     UE_LOG(AwesomeCharacter, Display, TEXT("%s added to slot: %i, count: %i"), *Slots[Index].DataTableRowHandle.RowName.ToString(), Index, Slots[Index].Amount);
-    OnSlotChanged.Broadcast(Slots[Index], Index);
+    OnSlotChanged_OnClient(Slots[Index], Index, ESlotLocationType::PersonalSlots);
     return true;
 }
 
 void AAwesomeBaseCharacter::EquipItem(UClass* Class, UStaticMesh* NewMesh, FName SocketName, EEquipmentType Type)
 {
+    /* handle on server */
     if (!GetWorld()) return;
     auto PlayerEquippedItem = GetWorld()->SpawnActor<AAwesomeEquipmentActor>(Class);
     if (!PlayerEquippedItem) return;
-    PlayerEquippedItem->SetStaticMesh(NewMesh);
+    // PlayerEquippedItem->SetStaticMesh(NewMesh);
+    SetStaticMesh_Multicast(PlayerEquippedItem, NewMesh);
     FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
     PlayerEquippedItem->AttachToComponent(GetMesh(), AttachmentRules, SocketName);
     EquippedItemsMap.Add(Type, PlayerEquippedItem);
+}
+
+void AAwesomeBaseCharacter::OnStuffEquiped_OnClient_Implementation(const TArray<FSlot>& Slots, ESlotLocationType Type)
+{
+    if (Controller && Controller->IsLocalPlayerController())
+    {
+        OnStuffEquiped.Broadcast(Slots, Type);
+    }
+}
+
+void AAwesomeBaseCharacter::OnSlotChanged_OnClient_Implementation(const FSlot& Item, const uint8 Index, ESlotLocationType Type)
+{
+    OnSlotChanged.Broadcast(Item, Index, Type);
+}
+
+void AAwesomeBaseCharacter::OnEquipmentSlotDataChanged_OnClient_Implementation(const FSlot& Item, EEquipmentType Type)
+{
+    OnEquipmentSlotDataChanged.Broadcast(Item, Type);
+}
+
+void AAwesomeBaseCharacter::SetStaticMesh_Multicast_Implementation(AAwesomeEquipmentActor* Actor, UStaticMesh* NewMesh)
+{
+    if (!Actor || !NewMesh) return;
+    Actor->SetStaticMesh(NewMesh);
 }

@@ -21,6 +21,7 @@ public:
     virtual void NativeOnInitialized() override;
 
     void SetDataSlot(const FSlot& InSlotData);
+    void SetIconToWidget(UTexture2D* NewIcon);
 
     UFUNCTION(BlueprintCallable)
     FSlot GetSlotData() const { return SlotData; };
@@ -49,6 +50,4 @@ private:
     uint8 ItemIndex;
     ESlotLocationType LocationType;
     EEquipmentType EquipmentType;
-
-    void SetIconToWidget();
 };

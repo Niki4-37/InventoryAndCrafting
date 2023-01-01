@@ -27,7 +27,7 @@ protected:
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "10"))
-    uint8 SlotsInRow{2};
+    uint8 SlotsInRow{4};
 
 private:
     void OnNewPawn(APawn* NewPawn);

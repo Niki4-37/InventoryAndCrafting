@@ -36,11 +36,15 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    TMap<EEquipmentType, UTexture2D*> DefaultEqiupmentIconsMap;
+
 private:
     UPROPERTY()
     TMap<EEquipmentType, UAwesomeItemDataWidget*> EqiupmentSlotsMap;
 
     void InitEquipment();
+    void InitEquipmentSlot(USizeBox* Box, UAwesomeItemDataWidget* ItemWidget, EEquipmentType Type);
 
     void OnNewPawn(APawn* NewPawn);
     void OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type);

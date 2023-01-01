@@ -7,7 +7,7 @@
 #include "AwesomeTypes.h"
 #include "AwesomeCraftingDeckWidget.generated.h"
 
-class UScrollBox;
+class UUniformGridPanel;
 class UDataTable;
 /**
  *
@@ -22,7 +22,10 @@ public:
 
 protected:
     UPROPERTY(meta = (BindWidget))
-    UScrollBox* CraftableItemsBox;
+    UUniformGridPanel* CraftableItemsBox;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "10"))
+    uint8 SlotsInRow{4};
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> CraftableItemWidgetClass;

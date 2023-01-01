@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/AwesomePersonalSlotsWidget.h"
+
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Player/AwesomeBaseCharacter.h"
@@ -40,7 +41,7 @@ void UAwesomePersonalSlotsWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESl
     uint8 SlotIndex{0};
     for (const auto& SlotData : Slots)
     {
-        auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        const auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (!ItemDataWidget) continue;
         ItemDataWidget->SetDataSlot(SlotData);
         ItemDataWidget->SetItemIndex(SlotIndex);

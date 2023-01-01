@@ -11,7 +11,7 @@ void UAwesomeItemDataWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    SetIconToWidget();
+    SetIconToWidget(nullptr);
 }
 
 void UAwesomeItemDataWidget::SetDataSlot(const FSlot& InSlotData)
@@ -19,13 +19,13 @@ void UAwesomeItemDataWidget::SetDataSlot(const FSlot& InSlotData)
     SlotData = InSlotData;
     if (!SlotData.Amount)
     {
-        SetIconToWidget();
+        SetIconToWidget(nullptr);
         return;
     }
     const auto PickupDataPointer = SlotData.DataTableRowHandle.GetRow<FItemData>("");
     if (!PickupDataPointer) return;
     ItemData = *PickupDataPointer;
-    SetIconToWidget();
+    SetIconToWidget(ItemData.Icon);
 }
 
 FReply UAwesomeItemDataWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -74,16 +74,9 @@ bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
-void UAwesomeItemDataWidget::SetIconToWidget()
+void UAwesomeItemDataWidget::SetIconToWidget(UTexture2D* NewIcon)
 {
-    if (!WidgetBorder) return;
+    if (!WidgetBorder || !EmptyIcon) return;
 
-    if (!SlotData.Amount && EmptyIcon)
-    {
-        WidgetBorder->SetBrushFromTexture(EmptyIcon);
-        return;
-    }
-
-    if (!ItemData.Icon) return;
-    WidgetBorder->SetBrushFromTexture(ItemData.Icon);
+    NewIcon ? WidgetBorder->SetBrushFromTexture(NewIcon) : WidgetBorder->SetBrushFromTexture(EmptyIcon);
 }

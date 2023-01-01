@@ -23,57 +23,38 @@ void UAwesomeEquipmentWidget::NativeOnInitialized()
 
 void UAwesomeEquipmentWidget::InitEquipment()
 {
-    if (HeadSlotBox)
-    {
-        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
-        if (SlotWidget)
-        {
-            HeadSlotBox->AddChild(SlotWidget);
-            EqiupmentSlotsMap.Add(EEquipmentType::Head, SlotWidget);
-        }
-    }
-    if (RightArmSlotBox)
-    {
-        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
-        if (SlotWidget)
-        {
-            RightArmSlotBox->AddChild(SlotWidget);
-            EqiupmentSlotsMap.Add(EEquipmentType::RightArm, SlotWidget);
-        }
-    }
-    if (TorsoSlotBox)
-    {
-        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
-        if (SlotWidget)
-        {
-            TorsoSlotBox->AddChild(SlotWidget);
-            EqiupmentSlotsMap.Add(EEquipmentType::Torso, SlotWidget);
-        }
-    }
-    if (LeftArmSlotBox)
-    {
-        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
-        if (SlotWidget)
-        {
-            LeftArmSlotBox->AddChild(SlotWidget);
-            EqiupmentSlotsMap.Add(EEquipmentType::LeftArm, SlotWidget);
-        }
-    }
-    if (LegsSlotBox)
-    {
-        auto SlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
-        if (SlotWidget)
-        {
-            LegsSlotBox->AddChild(SlotWidget);
-            EqiupmentSlotsMap.Add(EEquipmentType::Legs, SlotWidget);
-        }
-    }
+    auto HeadSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    InitEquipmentSlot(HeadSlotBox, HeadSlotWidget, EEquipmentType::Head);
+
+    auto RightArmSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    InitEquipmentSlot(RightArmSlotBox, RightArmSlotWidget, EEquipmentType::RightArm);
+
+    auto TorsoSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    InitEquipmentSlot(TorsoSlotBox, TorsoSlotWidget, EEquipmentType::Torso);
+
+    auto LeftArmSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    InitEquipmentSlot(LeftArmSlotBox, LeftArmSlotWidget, EEquipmentType::LeftArm);
+
+    auto LegsSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    InitEquipmentSlot(LegsSlotBox, LegsSlotWidget, EEquipmentType::Legs);
 
     for (TPair<EEquipmentType, UAwesomeItemDataWidget*>& Element : EqiupmentSlotsMap)
     {
         Element.Value->SetSlotLocationType(ESlotLocationType::Equipment);
         Element.Value->SetEquipmentType(Element.Key);
     }
+}
+
+void UAwesomeEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UAwesomeItemDataWidget* ItemWidget, EEquipmentType Type)
+{
+    if (!ItemWidget || !Box) return;
+
+    if (DefaultEqiupmentIconsMap.Contains(Type))
+    {
+        ItemWidget->SetIconToWidget(DefaultEqiupmentIconsMap.FindRef(Type));
+    }
+    Box->AddChild(ItemWidget);
+    EqiupmentSlotsMap.Add(Type, ItemWidget);
 }
 
 void UAwesomeEquipmentWidget::OnNewPawn(APawn* NewPawn)
@@ -91,4 +72,8 @@ void UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotDat
     auto SlotWidget = EqiupmentSlotsMap.FindChecked(Type);
     if (!SlotWidget) return;
     SlotWidget->SetDataSlot(NewSlotData);
+    if (!NewSlotData.Amount && DefaultEqiupmentIconsMap.Contains(Type))
+    {
+        SlotWidget->SetIconToWidget(DefaultEqiupmentIconsMap.FindRef(Type));
+    }
 }

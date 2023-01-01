@@ -5,6 +5,7 @@
 #include "UI/AwesomeItemDataWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Components/TextBlock.h"
 #include "Pickup/AwesomeBackpackMaster.h"
 
 void UAwesomeInventoryWidget::NativeOnInitialized()
@@ -37,6 +38,11 @@ void UAwesomeInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLo
     if (!InventoryItemSlots || Type != ESlotLocationType::Inventory) return;
     InventoryItemSlots->ClearChildren();
 
+    if (NoBackpackText)
+    {
+        Slots.Num() ? NoBackpackText->SetText(FText::FromString("")) : NoBackpackText->SetText(FText::FromString("NoBackpack"));
+    }
+
     uint8 SlotIndex{0};
     for (const auto& SlotData : Slots)
     {
@@ -47,7 +53,7 @@ void UAwesomeInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLo
         ItemDataWidget->SetSlotLocationType(ESlotLocationType::Inventory);
         auto GridObject = InventoryItemSlots->AddChildToUniformGrid(ItemDataWidget, SlotIndex / SlotsInRow, SlotIndex % SlotsInRow);
         if (!GridObject) continue;
-        GridObject->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+        GridObject->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Center);
         GridObject->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
         ++SlotIndex;
     }

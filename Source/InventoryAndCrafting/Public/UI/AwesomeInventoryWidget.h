@@ -8,6 +8,7 @@
 #include "AwesomeInventoryWidget.generated.h"
 
 class UUniformGridPanel;
+class UTextBlock;
 /**
  *
  */
@@ -23,11 +24,14 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UUniformGridPanel* InventoryItemSlots;
 
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* NoBackpackText;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "10"))
-    uint8 SlotsInRow{3};
+    uint8 SlotsInRow{4};
 
 private:
     void OnNewPawn(APawn* NewPawn);

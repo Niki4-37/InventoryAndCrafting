@@ -87,6 +87,12 @@ struct FItemData : public FTableRowBase
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EEquipmentType EquipmnetType{EEquipmentType::NotEquipment};
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    bool bCanIncreasePersonalSlots{false};
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (EditCondition = "bCanIncreasePersonalSlots"))
+    TArray<FSlot> PresonalExtraSlots;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<AActor> ActorClass;
 

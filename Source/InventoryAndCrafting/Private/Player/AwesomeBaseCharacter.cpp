@@ -196,7 +196,6 @@ void AAwesomeBaseCharacter::InitEnableSlots_OnServer_Implementation()
         EquipmentSlots.Add(FEquipmentSlot(EquipmentType, FDataTableRowHandle(), 0));
         UE_LOG(AwesomeCharacter, Display, TEXT("%s"), *UEnum::GetValueAsString(EquipmentType));
     }
-    FVector;
 }
 
 bool AAwesomeBaseCharacter::TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex)
@@ -251,14 +250,16 @@ bool AAwesomeBaseCharacter::TryAddItemToEquipment(const FSlot& Item, EEquipmentT
     }
     *FoundSlotPtr = FEquipmentSlot(ItemEquipmentType, Item.DataTableRowHandle, Item.Amount);
 
+    if (ItemData.bCanIncreasePersonalSlots)
+    {
+        PersonalSlots.Append(ItemData.PresonalExtraSlots);
+        OnStuffEquiped_OnClient(PersonalSlots, ESlotLocationType::PersonalSlots);
+    }
+
     OnEquipmentSlotDataChanged_OnClient(Item, ItemEquipmentType);
     const auto SocketName = EquipmentSocketNamesMap.FindChecked(ItemEquipmentType);
     EquipItem(ItemData.ActorClass, ItemData.Mesh, SocketName, ItemEquipmentType);
 
-    for (const auto& Element : EquipmentSlots)
-    {
-        UE_LOG(AwesomeCharacter, Display, TEXT("%s equiped %s amount %i"), *UEnum::GetValueAsString(Element.EquipmentType), *Element.DataTableRowHandle.RowName.ToString(), Element.Amount);
-    }
     return true;
 }
 
@@ -304,17 +305,39 @@ bool AAwesomeBaseCharacter::RemoveItemFromEquipment(const FSlot& Item, EEquipmen
     auto FoundSlot = *FoundSlotPtr;
     *FoundSlotPtr = FEquipmentSlot(FromEquipmentType, FDataTableRowHandle(), 0);
 
+    if (auto FoundRow = FoundSlot.DataTableRowHandle.GetRow<FItemData>(""))
+    {
+        RemovePersonalExtraSlots(*FoundRow);
+    }
+
     OnEquipmentSlotDataChanged_OnClient(FSlot(), FromEquipmentType);
     if (auto EquippedItem = EquippedItemsMap.FindAndRemoveChecked(FromEquipmentType))
     {
         EquippedItem->Destroy();
     }
 
-    for (const auto& Element : EquipmentSlots)
-    {
-        UE_LOG(AwesomeCharacter, Display, TEXT("%s equiped %s amount %i"), *UEnum::GetValueAsString(Element.EquipmentType), *Element.DataTableRowHandle.RowName.ToString(), Element.Amount);
-    }
     return false;
+}
+
+void AAwesomeBaseCharacter::RemovePersonalExtraSlots(const FItemData& ItemData)
+{
+    if (!ItemData.bCanIncreasePersonalSlots) return;
+    const auto AwesomePlayerController = Cast<AAwesomePlayerController>(Controller);
+    auto ExtraSlotsNumber = ItemData.PresonalExtraSlots.Num();
+    while (ExtraSlotsNumber)
+    {
+        if (AwesomePlayerController)
+        {
+            AwesomePlayerController->SpawnDroppedItem(PersonalSlots.Last());
+        }
+        else
+        {
+            UE_LOG(AwesomeCharacter, Warning, TEXT("Can't find AwesomePlayerController"));
+        }
+        PersonalSlots.Pop();
+        --ExtraSlotsNumber;
+    }
+    OnStuffEquiped_OnClient(PersonalSlots, ESlotLocationType::PersonalSlots);
 }
 
 void AAwesomeBaseCharacter::MoveForward(float Amount)
@@ -341,19 +364,12 @@ bool AAwesomeBaseCharacter::FindStackOfSameItems(const FSlot& Item, uint8& OutSl
     bOutCanStack = ItemData.bCanStack;
     if (!ItemData.bCanStack) return false;
 
-    uint8 SlotIndex{0};
-    for (const auto& SlotData : PersonalSlots)
+    int32 SearchingElementIndex{-1};
+    if (PersonalSlots.Find(Item, SearchingElementIndex))
     {
-        const auto SlotItemDataPointer = SlotData.DataTableRowHandle.GetRow<FItemData>("");
-        if (!SlotItemDataPointer) continue;
-        const auto SlotItemData = *SlotItemDataPointer;
-        if (SlotItemData.Name == ItemData.Name)
-        {
-            OutSlotIndex = SlotIndex;
-            OutAmount = SlotData.Amount;
-            return true;
-        }
-        ++SlotIndex;
+        OutSlotIndex = SearchingElementIndex;
+        OutAmount = PersonalSlots[OutSlotIndex].Amount;
+        return true;
     }
 
     return false;
@@ -417,7 +433,7 @@ bool AAwesomeBaseCharacter::UpdateSlotItemData(TArray<FSlot>& Slots, const uint8
     {
         Slots[Index] = FSlot();
     }
-    UE_LOG(AwesomeCharacter, Display, TEXT("%s added to slot: %i, count: %i"), *Slots[Index].DataTableRowHandle.RowName.ToString(), Index, Slots[Index].Amount);
+
     OnSlotChanged_OnClient(Slots[Index], Index, ESlotLocationType::PersonalSlots);
     return true;
 }
@@ -428,7 +444,6 @@ void AAwesomeBaseCharacter::EquipItem(UClass* Class, UStaticMesh* NewMesh, FName
     if (!GetWorld()) return;
     auto PlayerEquippedItem = GetWorld()->SpawnActor<AAwesomeEquipmentActor>(Class);
     if (!PlayerEquippedItem) return;
-    // PlayerEquippedItem->SetStaticMesh(NewMesh);
     SetStaticMesh_Multicast(PlayerEquippedItem, NewMesh);
     FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
     PlayerEquippedItem->AttachToComponent(GetMesh(), AttachmentRules, SocketName);

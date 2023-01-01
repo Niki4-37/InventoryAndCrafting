@@ -96,6 +96,8 @@ private:
     bool RemoveItemFromPersonalSlots(const FSlot& Item);
     bool RemoveItemFromEquipment(const FSlot& Item, EEquipmentType FromEquipmentType);
 
+    void RemovePersonalExtraSlots(const FItemData& ItemData);
+
     void TakeItem();
 
     bool UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountModifier);

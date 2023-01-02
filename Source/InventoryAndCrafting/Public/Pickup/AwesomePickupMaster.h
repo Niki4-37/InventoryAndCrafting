@@ -8,6 +8,7 @@
 #include "Interfaces/AwesomeInteractionInterface.h"
 #include "AwesomePickupMaster.generated.h"
 
+class UBoxComponent;
 /**
  *
  */
@@ -29,6 +30,9 @@ public:
 protected:
     UPROPERTY(ReplicatedUsing = PickupItem_OnRep, EditAnywhere, BlueprintReadWrite)
     FSlot PickupItem;
+
+    UPROPERTY(EditAnywhere)
+    UBoxComponent* BoxComponent;
 
     virtual void BeginPlay() override;
 

@@ -25,6 +25,8 @@ protected:
     UPROPERTY(meta = (BindWidget))
     USizeBox* HeadSlotBox;
     UPROPERTY(meta = (BindWidget))
+    USizeBox* BackSlotBox;
+    UPROPERTY(meta = (BindWidget))
     USizeBox* RightArmSlotBox;
     UPROPERTY(meta = (BindWidget))
     USizeBox* TorsoSlotBox;

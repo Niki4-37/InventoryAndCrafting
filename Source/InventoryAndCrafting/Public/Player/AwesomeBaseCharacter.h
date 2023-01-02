@@ -57,6 +57,12 @@ protected:
     UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
     uint8 PersonalSlotsNumber{4};
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UAnimMontage* SwapWeaponsMontage;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UAnimMontage* DrawWeaponMontage;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     FName BackpackSocketName;
 
@@ -71,12 +77,16 @@ private:
     TArray<FSlot> PersonalSlots;
     UPROPERTY(Replicated)
     TArray<FEquipmentSlot> EquipmentSlots;
+    UPROPERTY(Replicated)
+    bool bIsPlayingMontage{false};
 
     UPROPERTY()
     TMap<EEquipmentType, AActor*> EquippedItemsMap;
 
     UPROPERTY(Replicated)
     AAwesomeBackpackMaster* EquipedBackpack{nullptr};
+
+    FTimerHandle PlayerActionTimer;
 
     UFUNCTION(Server, Reliable)
     void InitEnableSlots_OnServer();
@@ -94,9 +104,19 @@ private:
 
     bool RemoveAmountFromChoosenSlotsAtIndex(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountToRemove);
     bool RemoveItemFromPersonalSlots(const FSlot& Item);
-    bool RemoveItemFromEquipment(const FSlot& Item, EEquipmentType FromEquipmentType);
+    FSlot RemoveItemFromEquipment(EEquipmentType FromEquipmentType);
 
     void RemovePersonalExtraSlots(const FItemData& ItemData);
+
+    bool HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
+
+    UFUNCTION(Server, Reliable)
+    void SwapWeapons_OnServer();
+    UFUNCTION(Server, Reliable)
+    void DrawWeapon_OnServer();
+
+    void SwapWeapons();
+    void DrawWeapon();
 
     void TakeItem();
 
@@ -115,4 +135,7 @@ private:
 
     UFUNCTION(NetMulticast, Reliable)
     void SetStaticMesh_Multicast(AAwesomeEquipmentActor* Actor, UStaticMesh* NewMesh);
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void PlayAnimMontage_Multicast(UAnimMontage* Montage, float PlayRate);
 };

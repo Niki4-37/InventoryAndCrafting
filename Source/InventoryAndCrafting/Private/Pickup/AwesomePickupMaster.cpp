@@ -2,12 +2,20 @@
 
 #include "Pickup/AwesomePickupMaster.h"
 #include "Player/AwesomeBaseCharacter.h"
+#include "Components/BoxComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AAwesomePickupMaster::AAwesomePickupMaster()
 {
     bReplicates = true;
     GetStaticMeshComponent()->SetIsReplicated(true);
+
+    BoxComponent = CreateDefaultSubobject<UBoxComponent>("BoxComponent");
+    BoxComponent->SetBoxExtent(FVector(50.f));
+    BoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    BoxComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+    BoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+    BoxComponent->SetupAttachment(GetRootComponent());
 }
 
 void AAwesomePickupMaster::BeginPlay()

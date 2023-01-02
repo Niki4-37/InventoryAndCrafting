@@ -80,6 +80,8 @@ void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
     PlayerInputComponent->BindAxis("LookUp", this, &AAwesomeBaseCharacter::AddControllerPitchInput);
 
     PlayerInputComponent->BindAction("TakeItem", IE_Pressed, this, &AAwesomeBaseCharacter::TakeItem);
+    PlayerInputComponent->BindAction("SwapWeapons", IE_Pressed, this, &AAwesomeBaseCharacter::SwapWeapons_OnServer);
+    PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &AAwesomeBaseCharacter::DrawWeapon_OnServer);
 }
 
 void AAwesomeBaseCharacter::UpdateInventoryWidgetSlotData(const FSlot& Item, const uint8 Index)
@@ -180,7 +182,7 @@ void AAwesomeBaseCharacter::MoveItem_OnServer_Implementation(const FSlot& Item, 
             break;
         }
         case (ESlotLocationType::PersonalSlots): RemoveAmountFromChoosenSlotsAtIndex(PersonalSlots, FromSlotIndex, Item.Amount); break;
-        case (ESlotLocationType::Equipment): RemoveItemFromEquipment(Item, FromEquipmentType); break;
+        case (ESlotLocationType::Equipment): RemoveItemFromEquipment(FromEquipmentType); break;
     }
 }
 
@@ -225,6 +227,7 @@ bool AAwesomeBaseCharacter::TryAddItemToPersonalSlotsByIndex(const FSlot& Item, 
 bool AAwesomeBaseCharacter::TryAddItemToEquipment(const FSlot& Item, EEquipmentType ToEquipmentType)
 {
     /* handle on server */
+    if (!Item.Amount) return false;
     const auto ItemDataPointer = Item.DataTableRowHandle.GetRow<FItemData>("");
     if (!ItemDataPointer) return false;
     const auto ItemData = *ItemDataPointer;
@@ -243,7 +246,7 @@ bool AAwesomeBaseCharacter::TryAddItemToEquipment(const FSlot& Item, EEquipmentT
         UE_LOG(AwesomeCharacter, Display, TEXT("Slot occupied"));
         if (TryAddItemToSlots(FSlot(FoundSlot.DataTableRowHandle, FoundSlot.Amount)))
         {
-            RemoveItemFromEquipment(FSlot(FoundSlot.DataTableRowHandle, FoundSlot.Amount), ItemEquipmentType);
+            RemoveItemFromEquipment(ItemEquipmentType);
         }
         else
             return false;
@@ -265,16 +268,35 @@ bool AAwesomeBaseCharacter::TryAddItemToEquipment(const FSlot& Item, EEquipmentT
 
 bool AAwesomeBaseCharacter::CheckForWeapon(EEquipmentType& WeaponEquipmentType, EEquipmentType ToEquipmentType)
 {
-    /* handle on server */
-    if (WeaponEquipmentType == EEquipmentType::RightArm && ToEquipmentType == EEquipmentType::RightArm) return true;
-
-    if (WeaponEquipmentType == EEquipmentType::RightArm && ToEquipmentType == EEquipmentType::LeftArm)
+    switch (ToEquipmentType)
     {
-        WeaponEquipmentType = ToEquipmentType;
-        return true;
+        case (EEquipmentType::RightArm):
+        {
+            if (WeaponEquipmentType == EEquipmentType::RightArm) return true;
+        }
+        case (EEquipmentType::LeftArm):
+        {
+            if (WeaponEquipmentType == EEquipmentType::RightArm)
+            {
+                WeaponEquipmentType = ToEquipmentType;
+                return true;
+            }
+        }
+        case (EEquipmentType::Back):
+        {
+            if (WeaponEquipmentType == EEquipmentType::RightArm)
+            {
+                WeaponEquipmentType = ToEquipmentType;
+                return true;
+            }
+            if (WeaponEquipmentType == EEquipmentType::LeftArm)
+            {
+                WeaponEquipmentType = ToEquipmentType;
+                return true;
+            }
+        }
+        default: return false;
     }
-
-    return false;
 }
 
 bool AAwesomeBaseCharacter::RemoveAmountFromChoosenSlotsAtIndex(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountToRemove)
@@ -297,11 +319,11 @@ bool AAwesomeBaseCharacter::RemoveItemFromPersonalSlots(const FSlot& Item)
     return false;
 }
 
-bool AAwesomeBaseCharacter::RemoveItemFromEquipment(const FSlot& Item, EEquipmentType FromEquipmentType)
+FSlot AAwesomeBaseCharacter::RemoveItemFromEquipment(EEquipmentType FromEquipmentType)
 {
     /* handle on server */
     auto FoundSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == FromEquipmentType; });
-    if (!FoundSlotPtr) return false;
+    if (!FoundSlotPtr || !FoundSlotPtr->Amount) return FSlot();
     auto FoundSlot = *FoundSlotPtr;
     *FoundSlotPtr = FEquipmentSlot(FromEquipmentType, FDataTableRowHandle(), 0);
 
@@ -316,7 +338,7 @@ bool AAwesomeBaseCharacter::RemoveItemFromEquipment(const FSlot& Item, EEquipmen
         EquippedItem->Destroy();
     }
 
-    return false;
+    return FSlot(FoundSlot.DataTableRowHandle, FoundSlot.Amount);
 }
 
 void AAwesomeBaseCharacter::RemovePersonalExtraSlots(const FItemData& ItemData)
@@ -338,6 +360,68 @@ void AAwesomeBaseCharacter::RemovePersonalExtraSlots(const FItemData& ItemData)
         --ExtraSlotsNumber;
     }
     OnStuffEquiped_OnClient(PersonalSlots, ESlotLocationType::PersonalSlots);
+}
+
+bool AAwesomeBaseCharacter::HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType)
+{
+    const auto FirstSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == FirstSlotType; });
+    const auto SecondSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == SecondSlotType; });
+
+    if (!FirstSlotPtr || !SecondSlotPtr) return false;
+
+    return FirstSlotPtr->Amount || SecondSlotPtr->Amount;
+}
+
+void AAwesomeBaseCharacter::SwapWeapons_OnServer_Implementation()
+{
+    if (!HasEquipmentToSwap(EEquipmentType::RightArm, EEquipmentType::LeftArm)  //
+        || bIsPlayingMontage                                                    //
+        || !GetWorld())
+        return;
+    bIsPlayingMontage = true;
+    float MontagePlayRate = 2.f;
+    float HalfDuration = SwapWeaponsMontage ? SwapWeaponsMontage->CalculateSequenceLength() / (2 * MontagePlayRate) : 0.f;
+    PlayAnimMontage_Multicast(SwapWeaponsMontage, MontagePlayRate);
+
+    GetWorld()->GetTimerManager().SetTimer(PlayerActionTimer, this, &AAwesomeBaseCharacter::SwapWeapons, HalfDuration);
+}
+
+void AAwesomeBaseCharacter::DrawWeapon_OnServer_Implementation()
+{
+    if (!HasEquipmentToSwap(EEquipmentType::RightArm, EEquipmentType::Back)  //
+        || bIsPlayingMontage                                                 //
+        || !GetWorld())
+        return;
+    bIsPlayingMontage = true;
+    float MontagePlayRate = 2.f;
+    float HalfDuration = DrawWeaponMontage ? DrawWeaponMontage->CalculateSequenceLength() / (2 * MontagePlayRate) : 0.f;
+    PlayAnimMontage_Multicast(DrawWeaponMontage, MontagePlayRate);
+
+    GetWorld()->GetTimerManager().SetTimer(PlayerActionTimer, this, &AAwesomeBaseCharacter::DrawWeapon, HalfDuration);
+}
+
+void AAwesomeBaseCharacter::SwapWeapons()
+{
+    const auto ItemFromRightArm = RemoveItemFromEquipment(EEquipmentType::RightArm);
+    const auto ItemFromLeftArm = RemoveItemFromEquipment(EEquipmentType::LeftArm);
+
+    TryAddItemToEquipment(ItemFromRightArm, EEquipmentType::LeftArm);
+    TryAddItemToEquipment(ItemFromLeftArm, EEquipmentType::RightArm);
+
+    bIsPlayingMontage = false;
+    GetWorld()->GetTimerManager().ClearTimer(PlayerActionTimer);
+}
+
+void AAwesomeBaseCharacter::DrawWeapon()
+{
+    const auto ItemFromRightArm = RemoveItemFromEquipment(EEquipmentType::RightArm);
+    const auto ItemFromBack = RemoveItemFromEquipment(EEquipmentType::Back);
+
+    TryAddItemToEquipment(ItemFromRightArm, EEquipmentType::Back);
+    TryAddItemToEquipment(ItemFromBack, EEquipmentType::RightArm);
+
+    bIsPlayingMontage = false;
+    GetWorld()->GetTimerManager().ClearTimer(PlayerActionTimer);
 }
 
 void AAwesomeBaseCharacter::MoveForward(float Amount)
@@ -401,15 +485,16 @@ void AAwesomeBaseCharacter::TakeItem()
     FVector ViewLocation;
     FRotator VeiwRotation;
     GetController()->GetPlayerViewPoint(ViewLocation, VeiwRotation);
-    FVector Start = ViewLocation + (SpringArmComponent->TargetArmLength + 30.f) * VeiwRotation.Vector();
+    FVector Start = ViewLocation + (SpringArmComponent->TargetArmLength + 50.f) * VeiwRotation.Vector();
     FVector End = ViewLocation + (SpringArmComponent->TargetArmLength + 300.f) * VeiwRotation.Vector();
 
     FHitResult HitResult;
-    UKismetSystemLibrary::SphereTraceSingle(GetWorld(), Start, End, 20.f, ETraceTypeQuery::TraceTypeQuery1, false, {this}, EDrawDebugTrace::ForDuration, HitResult, true);
-    // GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+    // UKismetSystemLibrary::SphereTraceSingle(GetWorld(), Start, End, 20.f, ETraceTypeQuery::TraceTypeQuery1, false, {this}, EDrawDebugTrace::ForDuration, HitResult, true);
+    GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
     if (HitResult.bBlockingHit)
     {
+        UE_LOG(AwesomeCharacter, Display, TEXT("%s"), *HitResult.GetActor()->GetName());
         DrawDebugLine(GetWorld(), Start, HitResult.ImpactPoint, FColor::Blue, false, 5.f, 0U, 3.f);
         if (const auto ActorWithInterface = Cast<IAwesomeInteractionInterface>(HitResult.GetActor()))
         {
@@ -472,4 +557,9 @@ void AAwesomeBaseCharacter::SetStaticMesh_Multicast_Implementation(AAwesomeEquip
 {
     if (!Actor || !NewMesh) return;
     Actor->SetStaticMesh(NewMesh);
+}
+
+void AAwesomeBaseCharacter::PlayAnimMontage_Multicast_Implementation(UAnimMontage* Montage, float PlayRate)
+{
+    PlayAnimMontage(Montage, PlayRate);
 }

@@ -35,20 +35,12 @@ bool AAwesomeBackpackMaster::FindStackOfSameItems(const FSlot& Item, uint8& OutS
     const auto ItemData = *ItemDataPointer;
     bOutCanStack = ItemData.bCanStack;
 
-    uint8 SlotIndex{0};
-    for (const auto& SlotData : BackpackSlots)
+    int32 SearchingElementIndex{-1};
+    if (BackpackSlots.Find(Item, SearchingElementIndex))
     {
-        if (!SlotData.DataTableRowHandle.DataTable) continue;
-        const auto SlotItemDataPointer = SlotData.DataTableRowHandle.DataTable->FindRow<FItemData>(SlotData.DataTableRowHandle.RowName, "", false);
-        if (!SlotItemDataPointer) continue;
-        const auto SlotItemData = *SlotItemDataPointer;
-        if (SlotItemData.Name == ItemData.Name)
-        {
-            OutSlotIndex = SlotIndex;
-            OutAmount = SlotData.Amount;
-            return true;
-        }
-        ++SlotIndex;
+        OutSlotIndex = SearchingElementIndex;
+        OutAmount = BackpackSlots[OutSlotIndex].Amount;
+        return true;
     }
 
     return false;

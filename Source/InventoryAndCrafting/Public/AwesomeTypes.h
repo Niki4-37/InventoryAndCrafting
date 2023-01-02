@@ -25,6 +25,7 @@ enum class EEquipmentType : uint8
     LeftArm,
     Legs,
     Torso,
+    Back,
     NotEquipment,
 
     Begin = Head        UMETA(Hidden),

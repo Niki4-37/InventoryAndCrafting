@@ -26,6 +26,9 @@ void UAwesomeEquipmentWidget::InitEquipment()
     auto HeadSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(HeadSlotBox, HeadSlotWidget, EEquipmentType::Head);
 
+    auto BackSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    InitEquipmentSlot(BackSlotBox, BackSlotWidget, EEquipmentType::Back);
+
     auto RightArmSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(RightArmSlotBox, RightArmSlotWidget, EEquipmentType::RightArm);
 

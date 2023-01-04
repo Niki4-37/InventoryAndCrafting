@@ -106,10 +106,10 @@ void AAwesomeBackpackMaster::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (GetRemoteRole() == ENetRole::ROLE_SimulatedProxy)
-    {
-        InitBackpack_OnServer();
-    }
+    // if (GetRemoteRole() == ENetRole::ROLE_SimulatedProxy)
+    //{
+    //     InitBackpack_OnServer();
+    // }
 }
 
 void AAwesomeBackpackMaster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -146,5 +146,6 @@ void AAwesomeBackpackMaster::UpdateOwnerWidget(const FSlot& Item, const uint8 In
 {
     const auto Player = Cast<AAwesomeBaseCharacter>(GetOwner());
     if (!Player) return;
-    Player->UpdateInventoryWidgetSlotData(Item, Index);
+    //Player->UpdateInventoryWidgetSlotData(Item, Index);
+    Player->UpdateWidgetSlotData(Item, Index, ESlotLocationType::Inventory);
 }

@@ -12,6 +12,10 @@ class UCameraComponent;
 class USpringArmComponent;
 class AAwesomeBackpackMaster;
 class AAwesomePickupMaster;
+class AAwesomeShop;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnTradingSignature, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoneyValueChangedSignature, int32);
 
 UCLASS()
 class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter, public IAwesomeInteractionInterface
@@ -25,9 +29,14 @@ public:
     FOnSlotDataChangedSignature OnSlotChanged;
     FOnStuffEquipedSignature OnStuffEquiped;
     FOnEquipmentSlotDataChangedSignature OnEquipmentSlotDataChanged;
+    FOnTradingSignature OnTrading;
+    FOnMoneyValueChangedSignature OnMoneyValueChanged;
 
     UFUNCTION(Server, Reliable)
     void EquipBackpack_OnServer(AAwesomeBackpackMaster* Backpack);
+
+    UFUNCTION(Server, Unreliable)
+    void StartTrading_OnServer(AAwesomeShop* Shop);
 
     AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
 
@@ -45,7 +54,10 @@ public:
                            EEquipmentType ToEquipmentType,      //
                            const uint8 ToSlotIndex);
 
-    void UpdateInventoryWidgetSlotData(const FSlot& Item, const uint8 Index);
+    void UpdateWidgetSlotData(const FSlot& Item, const uint8 Index, ESlotLocationType Type);
+
+    // Testing
+    void UpdateShopWidgetAfterTransaction(const TArray<FSlot>& Goods);
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -69,6 +81,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     TMap<EEquipmentType, FName> EquipmentSocketNamesMap;
 
+    UPROPERTY(Replicated /*Using = MoneyChanged_OnRep*/, EditDefaultsOnly, BlueprintReadWrite)
+    int32 Money;
+
     virtual void BeginPlay() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -87,6 +102,9 @@ private:
     AAwesomeBackpackMaster* EquipedBackpack{nullptr};
 
     FTimerHandle PlayerActionTimer;
+
+    UPROPERTY(Replicated)
+    AAwesomeShop* ActiveShop{nullptr};
 
     UFUNCTION(Server, Reliable)
     void InitEnableSlots_OnServer();
@@ -124,6 +142,11 @@ private:
 
     void EquipItem(UClass* Class, UStaticMesh* NewMesh, FName SocketName, EEquipmentType Type);
 
+    bool TrySellItem(const FSlot& SellingItem);
+    void BuyItem(const FSlot& BuyingItem, uint8 Index);
+
+    void OnHUDWidgetSwitch(ESlateVisibility Visibility);
+
     UFUNCTION(Client, Reliable)
     void OnStuffEquiped_OnClient(const TArray<FSlot>& Slots, ESlotLocationType Type);
 
@@ -138,4 +161,22 @@ private:
 
     UFUNCTION(NetMulticast, Unreliable)
     void PlayAnimMontage_Multicast(UAnimMontage* Montage, float PlayRate);
+
+    UFUNCTION(Client, unreliable)
+    void OnTrading_OnClient(bool Enabled);
+
+    UFUNCTION(Client, unreliable)
+    void OpenInventory_OnClient();
+
+    UFUNCTION(Server, Reliable)
+    void StopTrading_OnServer();
+
+    // UFUNCTION()
+    // void MoneyChanged_OnRep();
+
+    UFUNCTION(Client, unreliable)
+    void OnMoneyChanged_OnClient(int32 Value);
+
+    UFUNCTION(Server, unreliable)
+    void SwitchMovement_OnServer(bool bCanMove);
 };

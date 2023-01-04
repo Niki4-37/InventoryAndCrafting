@@ -4,7 +4,7 @@
 #include "Player/AwesomeBaseCharacter.h"
 #include "UI/AwesomeItemDataWidget.h"
 #include "Components/SizeBox.h"
-
+#include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 
@@ -68,6 +68,10 @@ void UAwesomeEquipmentWidget::OnNewPawn(APawn* NewPawn)
     {
         Player->OnEquipmentSlotDataChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged);
     }
+    if (!Player->OnMoneyValueChanged.IsBoundToObject(this))
+    {
+        Player->OnMoneyValueChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnMoneyValueChanged);
+    }
 }
 
 void UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type)
@@ -78,5 +82,14 @@ void UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotDat
     if (!NewSlotData.Amount && DefaultEqiupmentIconsMap.Contains(Type))
     {
         SlotWidget->SetIconToWidget(DefaultEqiupmentIconsMap.FindRef(Type));
+    }
+}
+
+void UAwesomeEquipmentWidget::OnMoneyValueChanged(int32 Value)
+{
+    if (MoneyValueText)
+    {
+        UE_LOG(LogTemp, Display, TEXT("OnMoneyValueChanged"));
+        MoneyValueText->SetText(FText::AsNumber(Value));
     }
 }

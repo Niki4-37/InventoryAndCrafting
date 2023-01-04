@@ -3,8 +3,8 @@
 #include "UI/AwesomeDropBoxWidget.h"
 #include "UI/AwesomeDragDropItemOperation.h"
 #include "Player/AwesomeBaseCharacter.h"
-#include "Player/AwesomePlayerController.h"
-#include "Pickup/AwesomeBackpackMaster.h"
+//#include "Player/AwesomePlayerController.h"
+//#include "Pickup/AwesomeBackpackMaster.h"
 
 bool UAwesomeDropBoxWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {

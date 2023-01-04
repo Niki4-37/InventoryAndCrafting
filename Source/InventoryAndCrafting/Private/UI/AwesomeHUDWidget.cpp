@@ -10,6 +10,8 @@
 #include "UI/AwesomeEquipmentWidget.h"
 #include "UI/AwesomeInventoryWidget.h"
 #include "UI/AwesomePersonalSlotsWidget.h"
+#include "UI/AwesomeShopWidget.h"
+#include "Player/AwesomeBaseCharacter.h"
 
 void UAwesomeHUDWidget::NativeOnInitialized()
 {
@@ -27,7 +29,23 @@ void UAwesomeHUDWidget::NativeOnInitialized()
     {
         WidgetSwitcherBetween->SetActiveWidget(InventoryAndEquipmentPanel);
     }
+    if (GetOwningPlayer())
+    {
+        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UAwesomeHUDWidget::OnNewPawn);
+        OnNewPawn(GetOwningPlayerPawn());
+    }
+
     InitWidget();
+}
+
+void UAwesomeHUDWidget::OnNewPawn(APawn* NewPawn)
+{
+    const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
+    if (!Player) return;
+    if (!Player->OnTrading.IsBoundToObject(this))
+    {
+        Player->OnTrading.AddUObject(this, &UAwesomeHUDWidget::OnTrading);
+    }
 }
 
 void UAwesomeHUDWidget::InitWidget()
@@ -72,6 +90,15 @@ void UAwesomeHUDWidget::InitWidget()
             CraftingDeckPosition->AddChild(WidgetToAdd);
         }
     }
+    if (ShopPosition)
+    {
+        const auto WidgetToAdd = CreateWidget<UAwesomeShopWidget>(GetOwningPlayer(), ShopWidgetClass);
+        if (WidgetToAdd)
+        {
+            ShopPosition->AddChild(WidgetToAdd);
+            ShopPosition->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
 }
 
 void UAwesomeHUDWidget::OnSwitchCraftingPanel()
@@ -87,5 +114,14 @@ void UAwesomeHUDWidget::OnGoBack()
     if (WidgetSwitcherBetween && InventoryAndEquipmentPanel)
     {
         WidgetSwitcherBetween->SetActiveWidget(InventoryAndEquipmentPanel);
+    }
+}
+
+void UAwesomeHUDWidget::OnTrading(bool Enable)
+{
+    Enable ? ShopPosition->SetVisibility(ESlateVisibility::Visible) : ShopPosition->SetVisibility(ESlateVisibility::Hidden);
+    if (SwitchToCraftingButton)
+    {
+        SwitchToCraftingButton->SetIsEnabled(!Enable);
     }
 }

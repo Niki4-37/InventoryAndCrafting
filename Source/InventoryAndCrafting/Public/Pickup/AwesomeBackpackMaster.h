@@ -31,13 +31,13 @@ protected:
     UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "25"))
     uint8 BackpackSlotsNumber{15};
 
+    UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+    TArray<FSlot> BackpackSlots;
+
     virtual void BeginPlay() override;
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-    UPROPERTY(Replicated)
-    TArray<FSlot> BackpackSlots;
-
     UFUNCTION(Server, Reliable)
     void InitBackpack_OnServer();
 

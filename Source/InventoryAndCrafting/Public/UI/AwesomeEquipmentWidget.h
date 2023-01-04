@@ -10,6 +10,7 @@
 class UUniformGridPanel;
 class USizeBox;
 class UAwesomeItemDataWidget;
+class UTextBlock;
 /**
  *
  */
@@ -35,6 +36,9 @@ protected:
     UPROPERTY(meta = (BindWidget))
     USizeBox* LegsSlotBox;
 
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* MoneyValueText;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
@@ -50,4 +54,5 @@ private:
 
     void OnNewPawn(APawn* NewPawn);
     void OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type);
+    void OnMoneyValueChanged(int32 Value);
 };

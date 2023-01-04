@@ -13,7 +13,8 @@ enum class ESlotLocationType : uint8
     Environment,
     Equipment,
     Inventory,
-    PersonalSlots
+    PersonalSlots,
+    ShopSlots
 };
 
 // clang-format off
@@ -114,6 +115,9 @@ struct FItemData : public FTableRowBase
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (EditCondition = "bCanCraft"))
     int32 OutCraftedAmount;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    int32 Cost;
 };
 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnSlotDataChangedSignature, const FSlot&, const uint8, ESlotLocationType);

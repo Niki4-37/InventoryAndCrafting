@@ -9,6 +9,9 @@
 #include "Player/AwesomePlayerController.h"
 #include "Equipment/AwesomeEquipmentActor.h"
 #include "Net/UnrealNetwork.h"
+#include "AI/AwesomeShop.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Blueprint/UserWidget.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -48,16 +51,33 @@ void AAwesomeBaseCharacter::EquipBackpack_OnServer_Implementation(AAwesomeBackpa
     OnStuffEquiped_OnClient(EquipedBackpack->GetBackpackSlots(), ESlotLocationType::Inventory);
 }
 
+void AAwesomeBaseCharacter::StartTrading_OnServer_Implementation(AAwesomeShop* Shop)
+{
+    if (!Shop || ActiveShop) return;
+    ActiveShop = Shop;
+    ActiveShop->AddBuyer(this);
+    OnStuffEquiped_OnClient(Shop->GetGoods(), ESlotLocationType::ShopSlots);
+    OnTrading_OnClient(true);
+    OpenInventory_OnClient();
+}
+
 void AAwesomeBaseCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
     if (HasAuthority())
     {
+        Money = 100;
         InitEnableSlots_OnServer();
     }
-
+    OnMoneyChanged_OnClient(Money);
     OnStuffEquiped.Broadcast(PersonalSlots, ESlotLocationType::PersonalSlots);
+
+    const auto AwesomeController = Cast<AAwesomePlayerController>(Controller);
+    if (AwesomeController)
+    {
+        AwesomeController->OnHUDWidgetSwitch.AddUObject(this, &AAwesomeBaseCharacter::OnHUDWidgetSwitch);
+    }
 }
 
 void AAwesomeBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -68,6 +88,8 @@ void AAwesomeBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AAwesomeBaseCharacter, PersonalSlotsNumber);
     DOREPLIFETIME(AAwesomeBaseCharacter, PersonalSlots);
     DOREPLIFETIME(AAwesomeBaseCharacter, EquipmentSlots);
+    DOREPLIFETIME(AAwesomeBaseCharacter, ActiveShop);
+    DOREPLIFETIME(AAwesomeBaseCharacter, Money);
 }
 
 void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -84,9 +106,14 @@ void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
     PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &AAwesomeBaseCharacter::DrawWeapon_OnServer);
 }
 
-void AAwesomeBaseCharacter::UpdateInventoryWidgetSlotData(const FSlot& Item, const uint8 Index)
+void AAwesomeBaseCharacter::UpdateWidgetSlotData(const FSlot& Item, const uint8 Index, ESlotLocationType Type)
 {
-    OnSlotChanged_OnClient(Item, Index, ESlotLocationType::Inventory);
+    OnSlotChanged_OnClient(Item, Index, Type);
+}
+
+void AAwesomeBaseCharacter::UpdateShopWidgetAfterTransaction(const TArray<FSlot>& Goods)
+{
+    OnStuffEquiped_OnClient(Goods, ESlotLocationType::ShopSlots);
 }
 
 void AAwesomeBaseCharacter::PickupItem_OnServer_Implementation(AAwesomePickupMaster* Pickup)
@@ -167,6 +194,7 @@ void AAwesomeBaseCharacter::MoveItem_OnServer_Implementation(const FSlot& Item, 
             bMoveSuccess = true;
             break;
         }
+        case (ESlotLocationType::ShopSlots): bMoveSuccess = TrySellItem(Item); break;
 
         default: bMoveSuccess = false;
     }
@@ -183,6 +211,7 @@ void AAwesomeBaseCharacter::MoveItem_OnServer_Implementation(const FSlot& Item, 
         }
         case (ESlotLocationType::PersonalSlots): RemoveAmountFromChoosenSlotsAtIndex(PersonalSlots, FromSlotIndex, Item.Amount); break;
         case (ESlotLocationType::Equipment): RemoveItemFromEquipment(FromEquipmentType); break;
+        case (ESlotLocationType::ShopSlots): BuyItem(Item, FromSlotIndex);
     }
 }
 
@@ -535,6 +564,52 @@ void AAwesomeBaseCharacter::EquipItem(UClass* Class, UStaticMesh* NewMesh, FName
     EquippedItemsMap.Add(Type, PlayerEquippedItem);
 }
 
+bool AAwesomeBaseCharacter::TrySellItem(const FSlot& SellingItem)
+{
+    /* handle on server */
+    if (!ActiveShop) return false;
+
+    const auto ItemDataPtr = SellingItem.DataTableRowHandle.GetRow<FItemData>("");
+    if (!ItemDataPtr) return false;
+    Money += ItemDataPtr->Cost;
+
+    OnMoneyChanged_OnClient(Money);
+
+    return ActiveShop->SellItem(SellingItem);
+}
+
+void AAwesomeBaseCharacter::BuyItem(const FSlot& BuyingItem, uint8 Index)
+{
+    /* handle on server */
+    if (!ActiveShop) return;
+
+    const auto ItemDataPtr = BuyingItem.DataTableRowHandle.GetRow<FItemData>("");
+    if (!ItemDataPtr) return;
+    if (ItemDataPtr->Cost > Money) return;
+    Money -= ItemDataPtr->Cost;
+
+    OnMoneyChanged_OnClient(Money);
+
+    ActiveShop->BuyItem(Index);
+}
+
+void AAwesomeBaseCharacter::OnHUDWidgetSwitch(ESlateVisibility Visibility)
+{
+    if (Visibility == ESlateVisibility::Hidden)
+    {
+        SwitchMovement_OnServer(true);
+        if (ActiveShop)
+        {
+            StopTrading_OnServer();
+            OnTrading_OnClient(false);
+        }
+    }
+    if (Visibility == ESlateVisibility::Visible)
+    {
+        SwitchMovement_OnServer(false);
+    }
+}
+
 void AAwesomeBaseCharacter::OnStuffEquiped_OnClient_Implementation(const TArray<FSlot>& Slots, ESlotLocationType Type)
 {
     if (Controller && Controller->IsLocalPlayerController())
@@ -562,4 +637,41 @@ void AAwesomeBaseCharacter::SetStaticMesh_Multicast_Implementation(AAwesomeEquip
 void AAwesomeBaseCharacter::PlayAnimMontage_Multicast_Implementation(UAnimMontage* Montage, float PlayRate)
 {
     PlayAnimMontage(Montage, PlayRate);
+}
+
+void AAwesomeBaseCharacter::OnTrading_OnClient_Implementation(bool Enabled)
+{
+    OnTrading.Broadcast(Enabled);
+}
+
+void AAwesomeBaseCharacter::OpenInventory_OnClient_Implementation()
+{
+    const auto AwesomeController = Cast<AAwesomePlayerController>(Controller);
+    if (AwesomeController)
+    {
+        AwesomeController->OpenInventory();
+    }
+}
+
+void AAwesomeBaseCharacter::StopTrading_OnServer_Implementation()
+{
+    if (!ActiveShop) return;
+    ActiveShop->StopTrading(this);
+    ActiveShop = nullptr;
+}
+
+// void AAwesomeBaseCharacter::MoneyChanged_OnRep()
+//{
+//     UE_LOG(AwesomeCharacter, Display, TEXT("Money: %i"), Money);
+//     OnMoneyValueChanged.Broadcast(Money);
+// }
+
+void AAwesomeBaseCharacter::OnMoneyChanged_OnClient_Implementation(int32 Value)
+{
+    OnMoneyValueChanged.Broadcast(Value);
+}
+
+void AAwesomeBaseCharacter::SwitchMovement_OnServer_Implementation(bool bCanMove)
+{
+    bCanMove ? GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking) : GetCharacterMovement()->DisableMovement();
 }

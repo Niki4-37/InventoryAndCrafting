@@ -57,15 +57,22 @@ protected:
     TSubclassOf<UUserWidget> CraftingDeckWidgetClass;
 
     UPROPERTY(meta = (BindWidget))
+    UBorder* ShopPosition;
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UUserWidget> ShopWidgetClass;
+
+    UPROPERTY(meta = (BindWidget))
     UButton* SwitchToCraftingButton;
 
     UPROPERTY(meta = (BindWidget))
     UButton* BackButton;
 
 private:
+    void OnNewPawn(APawn* NewPawn);
     void InitWidget();
     UFUNCTION()
     void OnSwitchCraftingPanel();
     UFUNCTION()
     void OnGoBack();
+    void OnTrading(bool Enable);
 };

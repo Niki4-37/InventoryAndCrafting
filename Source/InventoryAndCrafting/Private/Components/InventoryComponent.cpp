@@ -16,6 +16,17 @@ UInventoryComponent::UInventoryComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
     SetIsReplicatedByDefault(true);
+
+    for (EEquipmentType EquipmentType = EEquipmentType::Begin; EquipmentType != EEquipmentType::End; ++EquipmentType)
+    {
+        FString EnumNameString(UEnum::GetValueAsName(EquipmentType).ToString());
+        int32 ScopeIndex = EnumNameString.Find(TEXT("::"), ESearchCase::CaseSensitive);
+        if (ScopeIndex != INDEX_NONE)
+        {
+            FName SocketName = FName(*(EnumNameString.Mid(ScopeIndex + 2) + "Socket"));
+            EquipmentSocketNamesMap.Add(EquipmentType, SocketName);
+        }
+    }
 }
 
 void UInventoryComponent::EquipBackpack_OnServer_Implementation(AAwesomeBackpackMaster* Backpack)
@@ -316,7 +327,7 @@ bool UInventoryComponent::TryAddItemToEquipment(const FSlot& Item, EEquipmentTyp
     }
 
     OnEquipmentSlotDataChanged_OnClient(Item, ItemEquipmentType);
-    const auto SocketName = EquipmentSocketNamesMap.FindChecked(ItemEquipmentType);
+    const auto SocketName = EquipmentSocketNamesMap.FindRef(ItemEquipmentType);
     EquipItem(ItemData.ActorClass, ItemData.Mesh, SocketName, ItemEquipmentType);
 
     return true;

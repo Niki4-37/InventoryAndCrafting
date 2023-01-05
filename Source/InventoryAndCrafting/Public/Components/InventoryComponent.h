@@ -67,7 +67,7 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     FName BackpackSocketName;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    UPROPERTY(VisibleAnywhere)
     TMap<EEquipmentType, FName> EquipmentSocketNamesMap;
 
     virtual void BeginPlay() override;

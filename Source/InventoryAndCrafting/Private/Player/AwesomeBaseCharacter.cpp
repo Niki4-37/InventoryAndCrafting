@@ -84,7 +84,7 @@ void AAwesomeBaseCharacter::SwapItems(UAnimMontage* Montage, EEquipmentType Firs
 
     FTimerDelegate TimerDelegate = FTimerDelegate::CreateUObject(InventoryComponent, &UInventoryComponent::SwapItems, FirstSlotType, SecondSlotType);
     GetWorld()->GetTimerManager().SetTimer(MontageTimer, TimerDelegate, HalfDuration, false);
-    GetWorld()->GetTimerManager().SetTimer(ResetTimer, this, &AAwesomeBaseCharacter::ResetMontageTimer, HalfDuration);
+    GetWorld()->GetTimerManager().SetTimer(ResetTimer, this, &AAwesomeBaseCharacter::ResetMontageTimer, HalfDuration * 2);
 }
 
 void AAwesomeBaseCharacter::ResetMontageTimer()

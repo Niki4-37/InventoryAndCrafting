@@ -5,13 +5,13 @@
 #include "Components/CanvasPanel.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
+#include "Components/InventoryComponent.h"
 #include "UI/AwesomeCraftingDeckWidget.h"
 #include "UI/AwesomeDropBoxWidget.h"
 #include "UI/AwesomeEquipmentWidget.h"
 #include "UI/AwesomeInventoryWidget.h"
 #include "UI/AwesomePersonalSlotsWidget.h"
 #include "UI/AwesomeShopWidget.h"
-#include "Player/AwesomeBaseCharacter.h"
 
 void UAwesomeHUDWidget::NativeOnInitialized()
 {
@@ -40,11 +40,12 @@ void UAwesomeHUDWidget::NativeOnInitialized()
 
 void UAwesomeHUDWidget::OnNewPawn(APawn* NewPawn)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
-    if (!Player) return;
-    if (!Player->OnTrading.IsBoundToObject(this))
+    if (!NewPawn) return;
+    const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    if (!InventoryComponent->OnTrading.IsBoundToObject(this))
     {
-        Player->OnTrading.AddUObject(this, &UAwesomeHUDWidget::OnTrading);
+        InventoryComponent->OnTrading.AddUObject(this, &UAwesomeHUDWidget::OnTrading);
     }
 }
 

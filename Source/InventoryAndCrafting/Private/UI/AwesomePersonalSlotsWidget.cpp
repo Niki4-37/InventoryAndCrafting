@@ -4,7 +4,7 @@
 
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
-#include "Player/AwesomeBaseCharacter.h"
+#include "Components/InventoryComponent.h"
 #include "UI/AwesomeItemDataWidget.h"
 
 void UAwesomePersonalSlotsWidget::NativeOnInitialized()
@@ -20,16 +20,16 @@ void UAwesomePersonalSlotsWidget::NativeOnInitialized()
 
 void UAwesomePersonalSlotsWidget::OnNewPawn(APawn* NewPawn)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
-    if (!Player) return;
-
-    if (!Player->OnStuffEquiped.IsBoundToObject(this))
+    if (!NewPawn) return;
+    const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    if (!InventoryComponent->OnStuffEquiped.IsBoundToObject(this))
     {
-        Player->OnStuffEquiped.AddUObject(this, &UAwesomePersonalSlotsWidget::OnStuffEquiped);
+        InventoryComponent->OnStuffEquiped.AddUObject(this, &UAwesomePersonalSlotsWidget::OnStuffEquiped);
     }
-    if (!Player->OnSlotChanged.IsBoundToObject(this))
+    if (!InventoryComponent->OnSlotChanged.IsBoundToObject(this))
     {
-        Player->OnSlotChanged.AddUObject(this, &UAwesomePersonalSlotsWidget::UpdateItemSlot);
+        InventoryComponent->OnSlotChanged.AddUObject(this, &UAwesomePersonalSlotsWidget::UpdateItemSlot);
     }
 }
 

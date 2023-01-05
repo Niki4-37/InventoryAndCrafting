@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Pickup/AwesomePickupMaster.h"
-#include "Player/AwesomeBaseCharacter.h"
+//#include "Player/AwesomeBaseCharacter.h"
 #include "Components/BoxComponent.h"
+#include "Components/InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AAwesomePickupMaster::AAwesomePickupMaster()
@@ -34,9 +35,13 @@ void AAwesomePickupMaster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 void AAwesomePickupMaster::Interact(AActor* InteractiveActor)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
-    if (!Player) return;
-    Player->PickupItem_OnServer(this);
+    // const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
+    // if (!Player) return;
+    //  Player->PickupItem_OnServer(this);
+    if (!InteractiveActor) return;
+    const auto InventoryComponent = InteractiveActor->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    InventoryComponent->PickupItem_OnServer(this);
 }
 
 void AAwesomePickupMaster::InitPickup()

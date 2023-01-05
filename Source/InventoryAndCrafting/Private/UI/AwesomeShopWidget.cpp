@@ -4,7 +4,7 @@
 #include "UI/AwesomeItemDataWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
-#include "Player/AwesomeBaseCharacter.h"
+#include "Components/InventoryComponent.h"
 #include "UI/AwesomeDragDropItemOperation.h"
 
 void UAwesomeShopWidget::NativeOnInitialized()
@@ -23,31 +23,32 @@ bool UAwesomeShopWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
     auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
-    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player) return true;
+    const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return true;
 
-    Player->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
-                              DragDropOperation->GetItemFromLocationType(),  //
-                              DragDropOperation->GetFromEquipmentType(),     //
-                              DragDropOperation->GetFromSlotIndex(),         //
-                              ESlotLocationType::ShopSlots,                  //
-                              EEquipmentType::NotEquipment,                  //
-                              0);
+    InventoryComponent->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
+                                          DragDropOperation->GetItemFromLocationType(),  //
+                                          DragDropOperation->GetFromEquipmentType(),     //
+                                          DragDropOperation->GetFromSlotIndex(),         //
+                                          ESlotLocationType::ShopSlots,                  //
+                                          EEquipmentType::NotEquipment,                  //
+                                          0);
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
 void UAwesomeShopWidget::OnNewPawn(APawn* NewPawn)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
-    if (!Player) return;
-    if (!Player->OnStuffEquiped.IsBoundToObject(this))
+    if (!NewPawn) return;
+    const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    if (!InventoryComponent->OnStuffEquiped.IsBoundToObject(this))
     {
-        Player->OnStuffEquiped.AddUObject(this, &UAwesomeShopWidget::OnStuffEquiped);
+        InventoryComponent->OnStuffEquiped.AddUObject(this, &UAwesomeShopWidget::OnStuffEquiped);
     }
-    if (!Player->OnSlotChanged.IsBoundToObject(this))
+    if (!InventoryComponent->OnSlotChanged.IsBoundToObject(this))
     {
-        Player->OnSlotChanged.AddUObject(this, &UAwesomeShopWidget::OnSlotChanged);
+        InventoryComponent->OnSlotChanged.AddUObject(this, &UAwesomeShopWidget::OnSlotChanged);
     }
 }
 
@@ -75,7 +76,7 @@ void UAwesomeShopWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocatio
 void UAwesomeShopWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type)
 {
     if (!ShopItemSlots || Type != ESlotLocationType::ShopSlots) return;
-    auto ItemDataWidget = Cast<UAwesomeItemDataWidget>(ShopItemSlots->GetChildAt(SlotIndex));
-    if (!ItemDataWidget) return;
-    ItemDataWidget->SetDataSlot(NewSlotData);
+    // auto ItemDataWidget = Cast<UAwesomeItemDataWidget>(ShopItemSlots->GetChildAt(SlotIndex));
+    // if (!ItemDataWidget) return;
+    // ItemDataWidget->SetDataSlot(NewSlotData);
 }

@@ -1,12 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/AwesomeInventoryWidget.h"
-#include "Player/AwesomeBaseCharacter.h"
 #include "UI/AwesomeItemDataWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/TextBlock.h"
-#include "Pickup/AwesomeBackpackMaster.h"
+#include "Components/InventoryComponent.h"
 
 void UAwesomeInventoryWidget::NativeOnInitialized()
 {
@@ -21,15 +20,16 @@ void UAwesomeInventoryWidget::NativeOnInitialized()
 
 void UAwesomeInventoryWidget::OnNewPawn(APawn* NewPawn)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
-    if (!Player) return;
-    if (!Player->OnStuffEquiped.IsBoundToObject(this))
+    if (!NewPawn) return;
+    const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    if (!InventoryComponent->OnStuffEquiped.IsBoundToObject(this))
     {
-        Player->OnStuffEquiped.AddUObject(this, &UAwesomeInventoryWidget::OnStuffEquiped);
+        InventoryComponent->OnStuffEquiped.AddUObject(this, &UAwesomeInventoryWidget::OnStuffEquiped);
     }
-    if (!Player->OnSlotChanged.IsBoundToObject(this))
+    if (!InventoryComponent->OnSlotChanged.IsBoundToObject(this))
     {
-        Player->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
+        InventoryComponent->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
     }
 }
 

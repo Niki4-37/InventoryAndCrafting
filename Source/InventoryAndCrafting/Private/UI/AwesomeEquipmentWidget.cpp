@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/AwesomeEquipmentWidget.h"
-#include "Player/AwesomeBaseCharacter.h"
 #include "UI/AwesomeItemDataWidget.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Components/InventoryComponent.h"
 
 void UAwesomeEquipmentWidget::NativeOnInitialized()
 {
@@ -62,15 +62,16 @@ void UAwesomeEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UAwesomeItemDataW
 
 void UAwesomeEquipmentWidget::OnNewPawn(APawn* NewPawn)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(NewPawn);
-    if (!Player) return;
-    if (!Player->OnEquipmentSlotDataChanged.IsBoundToObject(this))
+    if (!NewPawn) return;
+    const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    if (!InventoryComponent->OnEquipmentSlotDataChanged.IsBoundToObject(this))
     {
-        Player->OnEquipmentSlotDataChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged);
+        InventoryComponent->OnEquipmentSlotDataChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged);
     }
-    if (!Player->OnMoneyValueChanged.IsBoundToObject(this))
+    if (!InventoryComponent->OnMoneyValueChanged.IsBoundToObject(this))
     {
-        Player->OnMoneyValueChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnMoneyValueChanged);
+        InventoryComponent->OnMoneyValueChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnMoneyValueChanged);
     }
 }
 

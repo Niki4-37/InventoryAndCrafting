@@ -123,6 +123,8 @@ struct FItemData : public FTableRowBase
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnSlotDataChangedSignature, const FSlot&, const uint8, ESlotLocationType);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStuffEquipedSignature, const TArray<FSlot>&, ESlotLocationType);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnEquipmentSlotDataChangedSignature, const FSlot&, EEquipmentType);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnTradingSignature, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoneyValueChangedSignature, int32);
 
 USTRUCT()
 struct FEquipmentSlot

@@ -32,18 +32,18 @@ FReply UAwesomeCraftableItemWidget::NativeOnMouseButtonDown(const FGeometry& InG
 
 bool UAwesomeCraftableItemWidget::CheckEnabledCraftableComponents(AAwesomeBaseCharacter* Player)
 {
-    if (!Player || !Player->GetBackpack()) return false;
+    // if (!Player || !Player->GetBackpack()) return false;
 
-    for (const auto& CraftableComponent : Recipe)
-    {
-        uint8 SlotIndex;
-        int32 FoundStackAmount;
-        bool OutCanStack;
-        if (!Player->GetBackpack()->FindStackOfSameItems(CraftableComponent, SlotIndex, FoundStackAmount, OutCanStack)) return false;
-        if (FoundStackAmount < CraftableComponent.Amount) return false;
-        FCraftingSet CraftingSet(SlotIndex, CraftableComponent.Amount);
-        ComponentsFromRecipe.Add(CraftingSet);
-    }
+    // for (const auto& CraftableComponent : Recipe)
+    //{
+    //     uint8 SlotIndex;
+    //     int32 FoundStackAmount;
+    //     bool OutCanStack;
+    //     if (!Player->GetBackpack()->FindStackOfSameItems(CraftableComponent, SlotIndex, FoundStackAmount, OutCanStack)) return false;
+    //     if (FoundStackAmount < CraftableComponent.Amount) return false;
+    //     FCraftingSet CraftingSet(SlotIndex, CraftableComponent.Amount);
+    //     ComponentsFromRecipe.Add(CraftingSet);
+    // }
 
     return true;
 }
@@ -51,27 +51,27 @@ bool UAwesomeCraftableItemWidget::CheckEnabledCraftableComponents(AAwesomeBaseCh
 void UAwesomeCraftableItemWidget::CraftTheItem()
 {
     const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player || !Player->GetBackpack()) return;
+    // if (!Player || !Player->GetBackpack()) return;
 
-    if (CheckEnabledCraftableComponents(Player))
-    {
-        FDataTableRowHandle DataTableRowHandle;
-        DataTableRowHandle.DataTable = ItemsTable; /* must be set in blueprint! */
-        DataTableRowHandle.RowName = ItemName;
-        if (Player->GetBackpack()->TryAddItemToSlots(FSlot(DataTableRowHandle, CraftingOutAmount)))
-        {
-            SpendComponents(Player->GetBackpack());
-            return;
-        }
-        else
-        {
-            const auto PlayerController = Cast<AAwesomePlayerController>(GetOwningPlayer());
-            if (!PlayerController) return;
-            PlayerController->SpawnDroppedItem(FSlot(DataTableRowHandle, CraftingOutAmount));
-            SpendComponents(Player->GetBackpack());
-            return;
-        }
-    }
+    // if (CheckEnabledCraftableComponents(Player))
+    //{
+    //     FDataTableRowHandle DataTableRowHandle;
+    //     DataTableRowHandle.DataTable = ItemsTable; /* must be set in blueprint! */
+    //     DataTableRowHandle.RowName = ItemName;
+    //     if (Player->GetBackpack()->TryAddItemToSlots(FSlot(DataTableRowHandle, CraftingOutAmount)))
+    //     {
+    //         SpendComponents(Player->GetBackpack());
+    //         return;
+    //     }
+    //     else
+    //     {
+    //         const auto PlayerController = Cast<AAwesomePlayerController>(GetOwningPlayer());
+    //         if (!PlayerController) return;
+    //         PlayerController->SpawnDroppedItem(FSlot(DataTableRowHandle, CraftingOutAmount));
+    //         SpendComponents(Player->GetBackpack());
+    //         return;
+    //     }
+    // }
 }
 
 void UAwesomeCraftableItemWidget::SpendComponents(AAwesomeBackpackMaster* Backpack)

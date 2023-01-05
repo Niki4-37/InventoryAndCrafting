@@ -2,7 +2,7 @@
 
 #include "AI/AwesomeShop.h"
 #include "Net/UnrealNetwork.h"
-#include "Player/AwesomeBaseCharacter.h"
+#include "Components/InventoryComponent.h"
 
 AAwesomeShop::AAwesomeShop()
 {
@@ -26,9 +26,13 @@ void AAwesomeShop::BuyItem(uint8 Index)
     Goods.RemoveAt(Index);
     for (const auto& Buyer : Buyers)
     {
-        const auto Player = Cast<AAwesomeBaseCharacter>(Buyer);
-        if (!Player) continue;
-        Player->UpdateShopWidgetAfterTransaction(Goods);
+        // const auto Player = Cast<AAwesomeBaseCharacter>(Buyer);
+        // if (!Player) continue;
+        //  Player->UpdateShopWidgetAfterTransaction(Goods);
+        if (!Buyer) continue;
+        const auto InventoryComponent = Buyer->FindComponentByClass<UInventoryComponent>();
+        if (!InventoryComponent) continue;
+        InventoryComponent->UpdateShopWidgetAfterTransaction(Goods);
     }
 }
 
@@ -37,9 +41,13 @@ bool AAwesomeShop::SellItem(const FSlot& Item)
     Goods.Add(Item);
     for (const auto& Buyer : Buyers)
     {
-        const auto Player = Cast<AAwesomeBaseCharacter>(Buyer);
-        if (!Player) continue;
-        Player->UpdateShopWidgetAfterTransaction(Goods);
+        // const auto Player = Cast<AAwesomeBaseCharacter>(Buyer);
+        // if (!Player) continue;
+        //  Player->UpdateShopWidgetAfterTransaction(Goods);
+        if (!Buyer) continue;
+        const auto InventoryComponent = Buyer->FindComponentByClass<UInventoryComponent>();
+        if (!InventoryComponent) continue;
+        InventoryComponent->UpdateShopWidgetAfterTransaction(Goods);
     }
 
     return true;
@@ -66,7 +74,11 @@ void AAwesomeShop::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void AAwesomeShop::Interact(AActor* InteractiveActor)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
-    if (!Player) return;
-    Player->StartTrading_OnServer(this);
+    // const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
+    // if (!Player) return;
+    // Player->StartTrading_OnServer(this);
+    if (!InteractiveActor) return;
+    const auto InventoryComponent = InteractiveActor->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    InventoryComponent->StartTrading_OnServer(this);
 }

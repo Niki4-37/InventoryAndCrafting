@@ -1,22 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/AwesomePlayerController.h"
-#include "Pickup/AwesomePickupMaster.h"
 #include "UI/AwesomeHUDWidget.h"
-
-void AAwesomePlayerController::SpawnDroppedItem(const FSlot& DroppedItem)
-{
-    if (!GetWorld() || !GetPawn()) return;
-    const auto SpawningLocation = GetPawn()->GetActorLocation() + GetPawn()->GetActorForwardVector() * 200.f;
-    FTransform SpawnTransform(FRotator::ZeroRotator, SpawningLocation, FVector(1.f));
-
-    auto Pickup = GetWorld()->SpawnActorDeferred<AAwesomePickupMaster>(PickupMasterClass, SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-    if (Pickup)
-    {
-        Pickup->SetPickupItem(DroppedItem);
-        Pickup->FinishSpawning(SpawnTransform);
-    }
-}
 
 void AAwesomePlayerController::BeginPlay()
 {
@@ -62,5 +47,5 @@ void AAwesomePlayerController::OpenInventory()
             break;
         }
     }
-    OnHUDWidgetSwitch.Broadcast(HUDWidget->GetVisibility());
+    // OnHUDWidgetSwitch.Broadcast(HUDWidget->GetVisibility());
 }

@@ -4,8 +4,7 @@
 #include "Components/Border.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UI/AwesomeDragDropItemOperation.h"
-#include "Player/AwesomeBaseCharacter.h"
-#include "Pickup/AwesomeBackpackMaster.h"
+#include "Components/InventoryComponent.h"
 
 void UAwesomeItemDataWidget::NativeOnInitialized()
 {
@@ -60,16 +59,16 @@ bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
     auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
-    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwningPlayerPawn());
-    if (!Player) return true;
+    const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return true;
 
-    Player->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
-                              DragDropOperation->GetItemFromLocationType(),  //
-                              DragDropOperation->GetFromEquipmentType(),     //
-                              DragDropOperation->GetFromSlotIndex(),         //
-                              LocationType,                                  //
-                              EquipmentType,                                 //
-                              ItemIndex);
+    InventoryComponent->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
+                                          DragDropOperation->GetItemFromLocationType(),  //
+                                          DragDropOperation->GetFromEquipmentType(),     //
+                                          DragDropOperation->GetFromSlotIndex(),         //
+                                          LocationType,                                  //
+                                          EquipmentType,                                 //
+                                          ItemIndex);
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }

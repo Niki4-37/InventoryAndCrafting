@@ -109,6 +109,25 @@ void UInventoryComponent::UpdateShopWidgetAfterTransaction(const TArray<FSlot>& 
     OnStuffEquiped_OnClient(Goods, ESlotLocationType::ShopSlots);
 }
 
+bool UInventoryComponent::HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType)
+{
+    const auto FirstSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == FirstSlotType; });
+    const auto SecondSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == SecondSlotType; });
+
+    if (!FirstSlotPtr || !SecondSlotPtr) return false;
+
+    return FirstSlotPtr->Amount || SecondSlotPtr->Amount;
+}
+
+void UInventoryComponent::SwapItems(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType)
+{
+    const auto ItemFromFirstSlot = RemoveItemFromEquipment(FirstSlotType);
+    const auto ItemFromSecondSlot = RemoveItemFromEquipment(SecondSlotType);
+
+    TryAddItemToEquipment(ItemFromFirstSlot, SecondSlotType);
+    TryAddItemToEquipment(ItemFromSecondSlot, FirstSlotType);
+}
+
 void UInventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
@@ -408,35 +427,25 @@ void UInventoryComponent::RemovePersonalExtraSlots(const FItemData& ItemData)
     OnStuffEquiped_OnClient(PersonalSlots, ESlotLocationType::PersonalSlots);
 }
 
-bool UInventoryComponent::HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType)
-{
-    const auto FirstSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == FirstSlotType; });
-    const auto SecondSlotPtr = EquipmentSlots.FindByPredicate([&](FEquipmentSlot& Data) { return Data.EquipmentType == SecondSlotType; });
-
-    if (!FirstSlotPtr || !SecondSlotPtr) return false;
-
-    return FirstSlotPtr->Amount || SecondSlotPtr->Amount;
-}
-
 // void UInventoryComponent::SwapWeapons_OnServer_Implementation()
 //{
-//     //
+//     if (!HasEquipmentToSwap(EEquipmentType::RightArm, EEquipmentType::LeftArm)  //
+//         || bIsPlayingMontage                                                    //
+//         || !GetWorld())
+//         return;
+//     bIsPlayingMontage = true;
+//     float MontagePlayRate = 2.f;
+//     float HalfDuration = SwapWeaponsMontage ? SwapWeaponsMontage->CalculateSequenceLength() / (2 * MontagePlayRate) : 0.f;
+//     PlayAnimMontage_Multicast(SwapWeaponsMontage, MontagePlayRate);
+//
+//     GetWorld()->GetTimerManager().SetTimer(PlayerActionTimer, this, &AAwesomeBaseCharacter::SwapWeapons, HalfDuration);
 // }
 //
-// void UInventoryComponent::DrawWeapon_OnServer_Implementation()
+//  void UInventoryComponent::DrawWeapon_OnServer_Implementation()
 //{
-//     //
-// }
+//      //
+//  }
 //
-// void UInventoryComponent::SwapWeapons()
-//{
-//     //
-// }
-//
-// void UInventoryComponent::DrawWeapon()
-//{
-//     //
-// }
 
 bool UInventoryComponent::UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountModifier)
 {

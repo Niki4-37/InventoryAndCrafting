@@ -35,18 +35,17 @@ AAwesomeBaseCharacter::AAwesomeBaseCharacter()
 void AAwesomeBaseCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (HasAuthority())
+    {
+        bIsPlayingMontage = false;
+    }
 }
 
 void AAwesomeBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-    // DOREPLIFETIME(AAwesomeBaseCharacter, EquipedBackpack);
-    // DOREPLIFETIME(AAwesomeBaseCharacter, PersonalSlotsNumber);
-    // DOREPLIFETIME(AAwesomeBaseCharacter, PersonalSlots);
-    // DOREPLIFETIME(AAwesomeBaseCharacter, EquipmentSlots);
-    // DOREPLIFETIME(AAwesomeBaseCharacter, ActiveShop);
-    // DOREPLIFETIME(AAwesomeBaseCharacter, Money);
+    DOREPLIFETIME(AAwesomeBaseCharacter, bIsPlayingMontage);
 }
 
 void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -59,61 +58,41 @@ void AAwesomeBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
     PlayerInputComponent->BindAxis("LookUp", this, &AAwesomeBaseCharacter::AddControllerPitchInput);
 
     PlayerInputComponent->BindAction("TakeItem", IE_Pressed, this, &AAwesomeBaseCharacter::TakeItem);
-    // PlayerInputComponent->BindAction("SwapWeapons", IE_Pressed, this, &AAwesomeBaseCharacter::SwapWeapons_OnServer);
-    // PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &AAwesomeBaseCharacter::DrawWeapon_OnServer);
+    PlayerInputComponent->BindAction("SwapWeapons", IE_Pressed, this, &AAwesomeBaseCharacter::SwapWeapons_OnServer);
+    PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &AAwesomeBaseCharacter::DrawWeapon_OnServer);
 }
 
-// void AAwesomeBaseCharacter::SwapWeapons_OnServer_Implementation()
-//{
-//     if (!HasEquipmentToSwap(EEquipmentType::RightArm, EEquipmentType::LeftArm)  //
-//         || bIsPlayingMontage                                                    //
-//         || !GetWorld())
-//         return;
-//     bIsPlayingMontage = true;
-//     float MontagePlayRate = 2.f;
-//     float HalfDuration = SwapWeaponsMontage ? SwapWeaponsMontage->CalculateSequenceLength() / (2 * MontagePlayRate) : 0.f;
-//     PlayAnimMontage_Multicast(SwapWeaponsMontage, MontagePlayRate);
-//
-//     GetWorld()->GetTimerManager().SetTimer(PlayerActionTimer, this, &AAwesomeBaseCharacter::SwapWeapons, HalfDuration);
-// }
-//
-// void AAwesomeBaseCharacter::DrawWeapon_OnServer_Implementation()
-//{
-//     if (!HasEquipmentToSwap(EEquipmentType::RightArm, EEquipmentType::Back)  //
-//         || bIsPlayingMontage                                                 //
-//         || !GetWorld())
-//         return;
-//     bIsPlayingMontage = true;
-//     float MontagePlayRate = 2.f;
-//     float HalfDuration = DrawWeaponMontage ? DrawWeaponMontage->CalculateSequenceLength() / (2 * MontagePlayRate) : 0.f;
-//     PlayAnimMontage_Multicast(DrawWeaponMontage, MontagePlayRate);
-//
-//     GetWorld()->GetTimerManager().SetTimer(PlayerActionTimer, this, &AAwesomeBaseCharacter::DrawWeapon, HalfDuration);
-// }
-//
-// void AAwesomeBaseCharacter::SwapWeapons()
-//{
-//     const auto ItemFromRightArm = RemoveItemFromEquipment(EEquipmentType::RightArm);
-//     const auto ItemFromLeftArm = RemoveItemFromEquipment(EEquipmentType::LeftArm);
-//
-//     TryAddItemToEquipment(ItemFromRightArm, EEquipmentType::LeftArm);
-//     TryAddItemToEquipment(ItemFromLeftArm, EEquipmentType::RightArm);
-//
-//     bIsPlayingMontage = false;
-//     GetWorld()->GetTimerManager().ClearTimer(PlayerActionTimer);
-// }
-//
-// void AAwesomeBaseCharacter::DrawWeapon()
-//{
-//     const auto ItemFromRightArm = RemoveItemFromEquipment(EEquipmentType::RightArm);
-//     const auto ItemFromBack = RemoveItemFromEquipment(EEquipmentType::Back);
-//
-//     TryAddItemToEquipment(ItemFromRightArm, EEquipmentType::Back);
-//     TryAddItemToEquipment(ItemFromBack, EEquipmentType::RightArm);
-//
-//     bIsPlayingMontage = false;
-//     GetWorld()->GetTimerManager().ClearTimer(PlayerActionTimer);
-// }
+void AAwesomeBaseCharacter::SwapWeapons_OnServer_Implementation()
+{
+    SwapItems(SwapWeaponsMontage, EEquipmentType::RightArm, EEquipmentType::LeftArm);
+}
+
+void AAwesomeBaseCharacter::DrawWeapon_OnServer_Implementation()
+{
+    SwapItems(DrawWeaponMontage, EEquipmentType::RightArm, EEquipmentType::Back);
+}
+
+void AAwesomeBaseCharacter::SwapItems(UAnimMontage* Montage, EEquipmentType FirstSlotType, EEquipmentType SecondSlotType)
+{
+    /* handled on server */
+    bool bCanPlayMontage = InventoryComponent && InventoryComponent->HasEquipmentToSwap(FirstSlotType, SecondSlotType) && !bIsPlayingMontage && GetWorld();
+    if (!bCanPlayMontage) return;
+    bIsPlayingMontage = true;
+    float MontagePlayRate = 2.f;
+    float HalfDuration = Montage ? Montage->CalculateSequenceLength() / (2 * MontagePlayRate) : 0.f;
+    PlayAnimMontage_Multicast(Montage, MontagePlayRate);
+
+    FTimerDelegate TimerDelegate = FTimerDelegate::CreateUObject(InventoryComponent, &UInventoryComponent::SwapItems, FirstSlotType, SecondSlotType);
+    GetWorld()->GetTimerManager().SetTimer(MontageTimer, TimerDelegate, HalfDuration, false);
+    GetWorld()->GetTimerManager().SetTimer(ResetTimer, this, &AAwesomeBaseCharacter::ResetMontageTimer, HalfDuration);
+}
+
+void AAwesomeBaseCharacter::ResetMontageTimer()
+{
+    bIsPlayingMontage = false;
+    GetWorld()->GetTimerManager().ClearTimer(MontageTimer);
+    GetWorld()->GetTimerManager().ClearTimer(ResetTimer);
+}
 
 void AAwesomeBaseCharacter::MoveForward(float Amount)
 {

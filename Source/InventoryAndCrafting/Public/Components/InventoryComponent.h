@@ -51,6 +51,9 @@ public:
     // Testing
     void UpdateShopWidgetAfterTransaction(const TArray<FSlot>& Goods);
 
+    bool HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
+    void SwapItems(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
+
 protected:
     UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
     uint8 PersonalSlotsNumber{4};
@@ -103,16 +106,6 @@ private:
     bool DropItem(const FSlot& Item);
 
     void RemovePersonalExtraSlots(const FItemData& ItemData);
-
-    bool HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
-
-    // UFUNCTION(Server, Reliable)
-    // void SwapWeapons_OnServer();
-    // UFUNCTION(Server, Reliable)
-    // void DrawWeapon_OnServer();
-
-    // void SwapWeapons();
-    // void DrawWeapon();
 
     bool UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountModifier);
 

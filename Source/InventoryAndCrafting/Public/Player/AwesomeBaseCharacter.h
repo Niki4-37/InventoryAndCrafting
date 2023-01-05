@@ -42,13 +42,22 @@ protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+    UPROPERTY(Replicated)
+    bool bIsPlayingMontage{false};
+
+    FTimerHandle MontageTimer;
+    FTimerHandle ResetTimer;
+
     void MoveForward(float Amount);
     void MoveRight(float Amount);
 
-    // UFUNCTION(Server, Reliable)
-    // void SwapWeapons_OnServer();
-    // UFUNCTION(Server, Reliable)
-    // void DrawWeapon_OnServer();
+    UFUNCTION(Server, Reliable)
+    void SwapWeapons_OnServer();
+    UFUNCTION(Server, Reliable)
+    void DrawWeapon_OnServer();
+
+    void SwapItems(UAnimMontage* Montage, EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
+    void ResetMontageTimer();
 
     void TakeItem();
 

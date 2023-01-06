@@ -32,6 +32,9 @@ public:
     UFUNCTION(Server, Unreliable)
     void StartTrading_OnServer(AAwesomeShop* Shop);
 
+    UFUNCTION(Server, Reliable)
+    void StopTrading_OnServer();
+
     AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
 
     UFUNCTION(Server, Reliable)
@@ -131,11 +134,8 @@ private:
     UFUNCTION(Client, unreliable)
     void OnTrading_OnClient(bool Enabled);
 
-    // UFUNCTION(Client, unreliable)
-    // void OpenInventory_OnClient();
-
-    UFUNCTION(Server, Reliable)
-    void StopTrading_OnServer();
+    UFUNCTION(Client, unreliable)
+    void OpenInventory_OnClient();
 
     // UFUNCTION()
     // void MoneyChanged_OnRep();

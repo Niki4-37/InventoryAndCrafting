@@ -2,6 +2,7 @@
 
 #include "Player/AwesomePlayerController.h"
 #include "UI/AwesomeHUDWidget.h"
+#include "Components/InventoryComponent.h"
 
 void AAwesomePlayerController::BeginPlay()
 {
@@ -23,29 +24,41 @@ void AAwesomePlayerController::SetupInputComponent()
     Super::SetupInputComponent();
     if (!InputComponent) return;
 
-    InputComponent->BindAction("OpenInventory", IE_Pressed, this, &AAwesomePlayerController::OpenInventory);
+    InputComponent->BindAction("OpenCloseInventory", IE_Pressed, this, &AAwesomePlayerController::OpenCloseInventory);
+}
+
+void AAwesomePlayerController::OnPossess(APawn* aPawn)
+{
+    Super::OnPossess(aPawn);
 }
 
 void AAwesomePlayerController::OpenInventory()
 {
     if (!IsLocalPlayerController() || !HUDWidget) return;
+    HUDWidget->SetVisibility(ESlateVisibility::Visible);
+    SetInputMode(FInputModeGameAndUI());
+    bShowMouseCursor = true;
+}
+
+void AAwesomePlayerController::CloseInventory()
+{
+    if (!IsLocalPlayerController() || !HUDWidget) return;
+    HUDWidget->SetVisibility(ESlateVisibility::Hidden);
+    SetInputMode(FInputModeGameOnly());
+    bShowMouseCursor = false;
+
+    const auto InventoryComponent = GetPawn()->FindComponentByClass<UInventoryComponent>();
+    if (InventoryComponent)
+    {
+        InventoryComponent->StopTrading_OnServer();
+    }
+}
+
+void AAwesomePlayerController::OpenCloseInventory()
+{
     switch (HUDWidget->GetVisibility())
     {
-
-        case (ESlateVisibility::Hidden):
-        {
-            HUDWidget->SetVisibility(ESlateVisibility::Visible);
-            SetInputMode(FInputModeGameAndUI());
-            bShowMouseCursor = true;
-            break;
-        }
-        case (ESlateVisibility::Visible):
-        {
-            HUDWidget->SetVisibility(ESlateVisibility::Hidden);
-            SetInputMode(FInputModeGameOnly());
-            bShowMouseCursor = false;
-            break;
-        }
+        case (ESlateVisibility::Hidden): OpenInventory(); break;
+        case (ESlateVisibility::Visible): CloseInventory(); break;
     }
-    // OnHUDWidgetSwitch.Broadcast(HUDWidget->GetVisibility());
 }

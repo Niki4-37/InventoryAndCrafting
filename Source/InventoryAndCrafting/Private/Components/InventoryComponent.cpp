@@ -58,7 +58,14 @@ void UInventoryComponent::StartTrading_OnServer_Implementation(AAwesomeShop* Sho
     ActiveShop->AddBuyer(GetOwner());
     OnStuffEquiped_OnClient(Shop->GetGoods(), ESlotLocationType::ShopSlots);
     OnTrading_OnClient(true);
-    // OpenInventory_OnClient();
+    OpenInventory_OnClient();
+}
+
+void UInventoryComponent::StopTrading_OnServer_Implementation()
+{
+    if (!ActiveShop) return;
+    ActiveShop->StopTrading(GetOwner());
+    ActiveShop = nullptr;
 }
 
 void UInventoryComponent::PickupItem_OnServer_Implementation(AAwesomePickupMaster* Pickup)
@@ -438,26 +445,6 @@ void UInventoryComponent::RemovePersonalExtraSlots(const FItemData& ItemData)
     OnStuffEquiped_OnClient(PersonalSlots, ESlotLocationType::PersonalSlots);
 }
 
-// void UInventoryComponent::SwapWeapons_OnServer_Implementation()
-//{
-//     if (!HasEquipmentToSwap(EEquipmentType::RightArm, EEquipmentType::LeftArm)  //
-//         || bIsPlayingMontage                                                    //
-//         || !GetWorld())
-//         return;
-//     bIsPlayingMontage = true;
-//     float MontagePlayRate = 2.f;
-//     float HalfDuration = SwapWeaponsMontage ? SwapWeaponsMontage->CalculateSequenceLength() / (2 * MontagePlayRate) : 0.f;
-//     PlayAnimMontage_Multicast(SwapWeaponsMontage, MontagePlayRate);
-//
-//     GetWorld()->GetTimerManager().SetTimer(PlayerActionTimer, this, &AAwesomeBaseCharacter::SwapWeapons, HalfDuration);
-// }
-//
-//  void UInventoryComponent::DrawWeapon_OnServer_Implementation()
-//{
-//      //
-//  }
-//
-
 bool UInventoryComponent::UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountModifier)
 {
     /* handled on server */
@@ -563,20 +550,15 @@ void UInventoryComponent::OnTrading_OnClient_Implementation(bool Enabled)
     OnTrading.Broadcast(Enabled);
 }
 
-// void OpenInventory_OnClient_Implementation()
-//{
-//     //     const auto AwesomeController = Cast<AAwesomePlayerController>(Controller);
-//     //     if (AwesomeController)
-//     //     {
-//     //         AwesomeController->OpenInventory();
-//     //     }
-// }
-
-void UInventoryComponent::StopTrading_OnServer_Implementation()
+void UInventoryComponent::OpenInventory_OnClient_Implementation()
 {
-    if (!ActiveShop) return;
-    ActiveShop->StopTrading(GetOwner());
-    ActiveShop = nullptr;
+    const auto Character = GetOwner<ACharacter>();
+    if (!Character) return;
+    const auto AwesomeController = Cast<AAwesomePlayerController>(Character->GetController());
+    if (AwesomeController)
+    {
+        AwesomeController->OpenInventory();
+    }
 }
 
 void UInventoryComponent::OnMoneyChanged_OnClient_Implementation(int32 Value)

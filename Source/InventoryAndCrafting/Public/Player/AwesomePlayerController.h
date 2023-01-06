@@ -22,6 +22,7 @@ public:
     FOnHUDWidgetSwitchSignature OnHUDWidgetSwitch;
 
     void OpenInventory();
+    void CloseInventory();
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -29,8 +30,11 @@ protected:
 
     virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
+    virtual void OnPossess(APawn* aPawn) override;
 
 private:
     UPROPERTY()
     UAwesomeHUDWidget* HUDWidget;
+
+    void OpenCloseInventory();
 };

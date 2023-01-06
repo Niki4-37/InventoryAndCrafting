@@ -146,6 +146,25 @@ void UInventoryComponent::SwapItems(EEquipmentType FirstSlotType, EEquipmentType
     TryAddItemToEquipment(ItemFromSecondSlot, FirstSlotType);
 }
 
+bool UInventoryComponent::DropItem(const FSlot& Item)
+{
+    /* handled on server */
+    if (!GetWorld() || !Item.Amount) return false;
+    const auto SpawningLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 200.f;
+    FTransform SpawnTransform(FRotator::ZeroRotator, SpawningLocation, FVector(1.f));
+
+    auto Pickup = GetWorld()->SpawnActorDeferred<AAwesomePickupMaster>(PickupMasterClass, SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+    if (Pickup)
+    {
+        Pickup->SetPickupItem(Item);
+        Pickup->FinishSpawning(SpawnTransform);
+        UE_LOG(InventoryComponent_LOG, Display, TEXT("%s spawn in %s"), *Pickup->GetName(), *SpawningLocation.ToString());
+        return true;
+    }
+
+    return false;
+}
+
 void UInventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
@@ -157,12 +176,6 @@ void UInventoryComponent::BeginPlay()
     }
     OnMoneyChanged_OnClient(Money);
     OnStuffEquiped.Broadcast(PersonalSlots, ESlotLocationType::PersonalSlots);
-
-    // const auto AwesomeController = Cast<AAwesomePlayerController>(Controller);
-    // if (AwesomeController)
-    //{
-    //     AwesomeController->OnHUDWidgetSwitch.AddUObject(this, &AAwesomeBaseCharacter::OnHUDWidgetSwitch);
-    // }
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -413,25 +426,6 @@ FSlot UInventoryComponent::RemoveItemFromEquipment(EEquipmentType FromEquipmentT
     return FSlot(FoundSlot.DataTableRowHandle, FoundSlot.Amount);
 }
 
-bool UInventoryComponent::DropItem(const FSlot& Item)
-{
-    /* handled on server */
-    if (!GetWorld() || !Item.Amount) return false;
-    const auto SpawningLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 200.f;
-    FTransform SpawnTransform(FRotator::ZeroRotator, SpawningLocation, FVector(1.f));
-
-    auto Pickup = GetWorld()->SpawnActorDeferred<AAwesomePickupMaster>(PickupMasterClass, SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-    if (Pickup)
-    {
-        Pickup->SetPickupItem(Item);
-        Pickup->FinishSpawning(SpawnTransform);
-        UE_LOG(InventoryComponent_LOG, Display, TEXT("%s spawn in %s"), *Pickup->GetName(), *SpawningLocation.ToString());
-        return true;
-    }
-
-    return false;
-}
-
 void UInventoryComponent::RemovePersonalExtraSlots(const FItemData& ItemData)
 {
     if (!ItemData.bCanIncreasePersonalSlots) return;
@@ -503,29 +497,9 @@ void UInventoryComponent::BuyItem(const FSlot& BuyingItem, uint8 Index)
     ActiveShop->BuyItem(Index);
 }
 
-// void OnHUDWidgetSwitch(ESlateVisibility Visibility)
-//{
-//     if (Visibility == ESlateVisibility::Hidden)
-//     {
-//         SwitchMovement_OnServer(true);
-//         if (ActiveShop)
-//         {
-//             StopTrading_OnServer();
-//             OnTrading_OnClient(false);
-//         }
-//     }
-//     if (Visibility == ESlateVisibility::Visible)
-//     {
-//         SwitchMovement_OnServer(false);
-//     }
-//}
-
 void UInventoryComponent::OnStuffEquiped_OnClient_Implementation(const TArray<FSlot>& Slots, ESlotLocationType Type)
 {
-    //     if (Controller && Controller->IsLocalPlayerController())
-    //     {
     OnStuffEquiped.Broadcast(Slots, Type);
-    //     }
 }
 
 void UInventoryComponent::OnSlotChanged_OnClient_Implementation(const FSlot& Item, const uint8 Index, ESlotLocationType Type)

@@ -57,6 +57,8 @@ public:
     bool HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
     void SwapItems(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
 
+    bool DropItem(const FSlot& Item);
+
 protected:
     UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
     uint8 PersonalSlotsNumber{4};
@@ -105,8 +107,6 @@ private:
     bool RemoveAmountFromChoosenSlotsAtIndex(TArray<FSlot>& Slots, const uint8 Index, const int32 AmountToRemove);
     bool RemoveItemFromPersonalSlots(const FSlot& Item);
     FSlot RemoveItemFromEquipment(EEquipmentType FromEquipmentType);
-
-    bool DropItem(const FSlot& Item);
 
     void RemovePersonalExtraSlots(const FItemData& ItemData);
 

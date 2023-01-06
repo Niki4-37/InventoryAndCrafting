@@ -9,7 +9,7 @@
 
 class UBorder;
 class UTextBlock;
-class AAwesomeBaseCharacter;
+class UInventoryComponent;
 class AAwesomeBackpackMaster;
 
 USTRUCT()
@@ -59,7 +59,7 @@ private:
 
     TArray<FCraftingSet> ComponentsFromRecipe;
 
-    bool CheckEnabledCraftableComponents(AAwesomeBaseCharacter* Player);
+    bool CheckForCraftingComponents(UInventoryComponent* Inventory);
     void CraftTheItem();
 
     void SpendComponents(AAwesomeBackpackMaster* Backpack);

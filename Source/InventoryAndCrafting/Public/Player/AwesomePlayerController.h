@@ -9,7 +9,6 @@
 
 class UAwesomeHUDWidget;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHUDWidgetSwitchSignature, ESlateVisibility);
 /**
  *
  */
@@ -19,8 +18,6 @@ class INVENTORYANDCRAFTING_API AAwesomePlayerController : public APlayerControll
     GENERATED_BODY()
 
 public:
-    FOnHUDWidgetSwitchSignature OnHUDWidgetSwitch;
-
     void OpenInventory();
     void CloseInventory();
 

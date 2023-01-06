@@ -115,9 +115,7 @@ private:
     void EquipItem(UClass* Class, UStaticMesh* NewMesh, FName SocketName, EEquipmentType Type);
 
     bool TrySellItem(const FSlot& SellingItem);
-    void BuyItem(const FSlot& BuyingItem, uint8 Index);
-
-    // void OnHUDWidgetSwitch(ESlateVisibility Visibility);
+    void TryBuyItem(const FSlot& BuyingItem, uint8 Index, uint8 ToSlotNumber, ESlotLocationType ToLocationType, EEquipmentType ToEquipmentType);
 
     UFUNCTION(Client, Reliable)
     void OnStuffEquiped_OnClient(const TArray<FSlot>& Slots, ESlotLocationType Type);

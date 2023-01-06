@@ -157,3 +157,70 @@ struct FEquipmentSlot
         return *this;
     }
 };
+
+USTRUCT()
+struct FDragDropData
+{
+    GENERATED_USTRUCT_BODY()
+
+    ESlotLocationType FromLocationType;
+    EEquipmentType FromEquipmentType;
+    uint8 FromSlotIndex;
+    ESlotLocationType ToLocationType;
+    EEquipmentType ToEquipmentType;
+    uint8 ToSlotIndex;
+
+    FDragDropData()
+    {
+        FromLocationType = ESlotLocationType::Environment;
+        FromEquipmentType = EEquipmentType::NotEquipment;
+        FromSlotIndex = 0;
+        ToLocationType = ESlotLocationType::Environment;
+        ToEquipmentType = EEquipmentType::NotEquipment;
+        ToSlotIndex = 0;
+    }
+
+    FDragDropData(ESlotLocationType InFromLocationType //
+    , EEquipmentType InFromEquipmentType //
+    , uint8 InFromSlotIndex //
+    , ESlotLocationType InToLocationType //
+    , EEquipmentType InToEquipmentType //
+    , uint8 InToSlotIndex)
+    : FromLocationType(InFromLocationType)//
+    , FromEquipmentType(InFromEquipmentType)//
+    , FromSlotIndex(InFromSlotIndex)//
+    , ToLocationType(InToLocationType)//
+    , ToEquipmentType(InToEquipmentType)//
+    , ToSlotIndex(InToSlotIndex)
+    { }   
+
+    FDragDropData(FDragDropData&& Data)
+    : FromLocationType(Data.FromLocationType)//
+    , FromEquipmentType(Data.FromEquipmentType)//
+    , FromSlotIndex(Data.FromSlotIndex)//
+    , ToLocationType(Data.ToLocationType)//
+    , ToEquipmentType(Data.ToEquipmentType)//
+    , ToSlotIndex(Data.ToSlotIndex)
+    { }   
+
+    FDragDropData(const FDragDropData& Data)
+    : FromLocationType(Data.FromLocationType)//
+    , FromEquipmentType(Data.FromEquipmentType)//
+    , FromSlotIndex(Data.FromSlotIndex)//
+    , ToLocationType(Data.ToLocationType)//
+    , ToEquipmentType(Data.ToEquipmentType)//
+    , ToSlotIndex(Data.ToSlotIndex)
+    { }
+
+    FDragDropData& operator=(const FDragDropData& Data)
+    {
+        FromLocationType = Data.FromLocationType;
+        FromEquipmentType = Data.FromEquipmentType;
+        FromSlotIndex = Data.FromSlotIndex;
+        ToLocationType = Data.ToLocationType;
+        ToEquipmentType = Data.ToEquipmentType;
+        ToSlotIndex = Data.ToSlotIndex;
+
+        return *this;
+    }
+};

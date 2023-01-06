@@ -108,12 +108,12 @@ void UInventoryComponent::MoveItem_OnServer_Implementation(const FSlot& Item,   
         case (ESlotLocationType::Inventory):
         {
             if (!EquipedBackpack) return;
-            GetBackpack()->RemoveAmountFromInventorySlotsAtIndex(FromSlotIndex, Item.Amount);
+            EquipedBackpack->RemoveAmountFromInventorySlotsAtIndex(FromSlotIndex, Item.Amount);
             break;
         }
         case (ESlotLocationType::PersonalSlots): RemoveAmountFromChoosenSlotsAtIndex(PersonalSlots, FromSlotIndex, Item.Amount); break;
         case (ESlotLocationType::Equipment): RemoveItemFromEquipment(FromEquipmentType); break;
-        case (ESlotLocationType::ShopSlots): BuyItem(Item, FromSlotIndex);
+        case (ESlotLocationType::ShopSlots): TryBuyItem(Item, FromSlotIndex, ToSlotIndex, ToLocationType, ToEquipmentType);
     }
 }
 
@@ -482,14 +482,28 @@ bool UInventoryComponent::TrySellItem(const FSlot& SellingItem)
     return ActiveShop->SellItem(SellingItem);
 }
 
-void UInventoryComponent::BuyItem(const FSlot& BuyingItem, uint8 Index)
+void UInventoryComponent::TryBuyItem(const FSlot& BuyingItem, uint8 Index, uint8 ToSlotNumber, ESlotLocationType ToLocationType, EEquipmentType ToEquipmentType)
 {
     /* handle on server */
     if (!ActiveShop) return;
 
     const auto ItemDataPtr = BuyingItem.DataTableRowHandle.GetRow<FItemData>("");
     if (!ItemDataPtr) return;
-    if (ItemDataPtr->Cost > Money) return;
+    if (ItemDataPtr->Cost > Money)
+    {
+        switch (ToLocationType)
+        {
+            case (ESlotLocationType::Inventory):
+            {
+                if (!EquipedBackpack) return;
+                EquipedBackpack->RemoveAmountFromInventorySlotsAtIndex(ToSlotNumber, BuyingItem.Amount);
+                break;
+            }
+            case (ESlotLocationType::PersonalSlots): RemoveAmountFromChoosenSlotsAtIndex(PersonalSlots, ToSlotNumber, BuyingItem.Amount); break;
+            case (ESlotLocationType::Equipment): RemoveItemFromEquipment(ToEquipmentType); break;
+        }
+        return;
+    }
     Money -= ItemDataPtr->Cost;
 
     OnMoneyChanged_OnClient(Money);

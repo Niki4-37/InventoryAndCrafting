@@ -44,6 +44,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    TSubclassOf<UUserWidget> ConfirmWidgetClass;
+
 private:
     FItemData ItemData;
     FSlot SlotData;

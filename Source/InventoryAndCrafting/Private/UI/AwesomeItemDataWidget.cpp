@@ -4,6 +4,7 @@
 #include "Components/Border.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UI/AwesomeDragDropItemOperation.h"
+#include "UI/ConfirmWidget.h"
 #include "Components/InventoryComponent.h"
 
 void UAwesomeItemDataWidget::NativeOnInitialized()
@@ -34,6 +35,7 @@ FReply UAwesomeItemDataWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
 
 void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
+    if (!SlotData.Amount) return;
     auto DragDrop = Cast<UAwesomeDragDropItemOperation>(UWidgetBlueprintLibrary::CreateDragDropOperation(UAwesomeDragDropItemOperation::StaticClass()));
     if (DragDrop)
     {
@@ -41,6 +43,7 @@ void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
         DragDrop->SetFromSlotIndex(ItemIndex);
         DragDrop->SetFromSlotLocationType(LocationType);
         DragDrop->SetFromEquipmentType(EquipmentType);
+
         auto DradDropWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (DradDropWidget)
         {
@@ -59,9 +62,26 @@ bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
     auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
+    if (DragDropOperation->GetItemFromLocationType() == ESlotLocationType::ShopSlots)
+    {
+        auto ConfirmWidget = CreateWidget<UConfirmWidget>(GetOwningPlayer(), ConfirmWidgetClass);
+        if (ConfirmWidget)
+        {
+            ConfirmWidget->SetSlotData(DragDropOperation->GetSlotData());
+            ConfirmWidget->SetDraDropData(FDragDropData(DragDropOperation->GetItemFromLocationType(),  //
+                                                        DragDropOperation->GetFromEquipmentType(),     //
+                                                        DragDropOperation->GetFromSlotIndex(),         //
+                                                        LocationType,                                  //
+                                                        EquipmentType,                                 //
+                                                        ItemIndex));
+            ConfirmWidget->AddToViewport();
+
+            return OnDrop(InGeometry, InDragDropEvent, InOperation);
+        }
+    }
+
     const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
     if (!InventoryComponent) return true;
-
     InventoryComponent->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
                                           DragDropOperation->GetItemFromLocationType(),  //
                                           DragDropOperation->GetFromEquipmentType(),     //

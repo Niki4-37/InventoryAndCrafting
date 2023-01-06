@@ -6,6 +6,7 @@
 #include "Components/UniformGridSlot.h"
 #include "Components/InventoryComponent.h"
 #include "UI/AwesomeDragDropItemOperation.h"
+#include "UI/ConfirmWidget.h"
 
 void UAwesomeShopWidget::NativeOnInitialized()
 {
@@ -26,13 +27,18 @@ bool UAwesomeShopWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
     const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
     if (!InventoryComponent) return true;
 
-    InventoryComponent->MoveItem_OnServer(DragDropOperation->GetSlotData(),              //
-                                          DragDropOperation->GetItemFromLocationType(),  //
-                                          DragDropOperation->GetFromEquipmentType(),     //
-                                          DragDropOperation->GetFromSlotIndex(),         //
-                                          ESlotLocationType::ShopSlots,                  //
-                                          EEquipmentType::NotEquipment,                  //
-                                          0);
+    auto ConfirmWidget = CreateWidget<UConfirmWidget>(GetOwningPlayer(), ConfirmWidgetClass);
+    if (ConfirmWidget)
+    {
+        ConfirmWidget->SetSlotData(DragDropOperation->GetSlotData());
+        ConfirmWidget->SetDraDropData(FDragDropData(DragDropOperation->GetItemFromLocationType(),  //
+                                                    DragDropOperation->GetFromEquipmentType(),     //
+                                                    DragDropOperation->GetFromSlotIndex(),         //
+                                                    ESlotLocationType::ShopSlots,                  //
+                                                    EEquipmentType::NotEquipment,                  //
+                                                    0));
+        ConfirmWidget->AddToViewport();
+    }
 
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }

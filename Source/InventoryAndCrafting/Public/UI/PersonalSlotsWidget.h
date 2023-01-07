@@ -5,37 +5,32 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeShopWidget.generated.h"
+#include "PersonalSlotsWidget.generated.h"
 
 class UUniformGridPanel;
 /**
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeShopWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UPersonalSlotsWidget : public UUserWidget
 {
     GENERATED_BODY()
 
 public:
     virtual void NativeOnInitialized() override;
 
-    virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
-
 protected:
     UPROPERTY(meta = (BindWidget))
-    UUniformGridPanel* ShopItemSlots;
+    UUniformGridPanel* PersonalSlots;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<UUserWidget> ConfirmWidgetClass;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "5"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "10"))
     uint8 SlotsInRow{4};
 
 private:
     void OnNewPawn(APawn* NewPawn);
     void OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type);
-    void OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type);
+    void UpdateItemSlot(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type);
 };

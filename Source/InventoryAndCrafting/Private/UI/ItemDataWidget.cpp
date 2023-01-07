@@ -1,20 +1,20 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeItemDataWidget.h"
+#include "UI/ItemDataWidget.h"
 #include "Components/Border.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UI/AwesomeDragDropItemOperation.h"
 #include "UI/ConfirmWidget.h"
 #include "Components/InventoryComponent.h"
 
-void UAwesomeItemDataWidget::NativeOnInitialized()
+void UItemDataWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
     SetIconToWidget(nullptr);
 }
 
-void UAwesomeItemDataWidget::SetDataSlot(const FSlot& InSlotData)
+void UItemDataWidget::SetDataSlot(const FSlot& InSlotData)
 {
     SlotData = InSlotData;
     if (!SlotData.Amount)
@@ -28,12 +28,12 @@ void UAwesomeItemDataWidget::SetDataSlot(const FSlot& InSlotData)
     SetIconToWidget(ItemData.Icon);
 }
 
-FReply UAwesomeItemDataWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UItemDataWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
 }
 
-void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
+void UItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
     if (!SlotData.Amount) return;
     auto DragDrop = Cast<UAwesomeDragDropItemOperation>(UWidgetBlueprintLibrary::CreateDragDropOperation(UAwesomeDragDropItemOperation::StaticClass()));
@@ -44,7 +44,7 @@ void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
         DragDrop->SetFromSlotLocationType(LocationType);
         DragDrop->SetFromEquipmentType(EquipmentType);
 
-        auto DradDropWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        auto DradDropWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (DradDropWidget)
         {
             DradDropWidget->SetDataSlot(SlotData);
@@ -57,7 +57,7 @@ void UAwesomeItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
     Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 }
 
-bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+bool UItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
     auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
@@ -93,7 +93,7 @@ bool UAwesomeItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
-void UAwesomeItemDataWidget::SetIconToWidget(UTexture2D* NewIcon)
+void UItemDataWidget::SetIconToWidget(UTexture2D* NewIcon)
 {
     if (!WidgetBorder || !EmptyIcon) return;
 

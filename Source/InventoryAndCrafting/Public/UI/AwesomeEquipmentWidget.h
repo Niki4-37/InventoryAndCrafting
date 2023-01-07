@@ -9,7 +9,7 @@
 
 class UUniformGridPanel;
 class USizeBox;
-class UAwesomeItemDataWidget;
+class UItemDataWidget;
 class UTextBlock;
 /**
  *
@@ -47,10 +47,10 @@ protected:
 
 private:
     UPROPERTY()
-    TMap<EEquipmentType, UAwesomeItemDataWidget*> EqiupmentSlotsMap;
+    TMap<EEquipmentType, UItemDataWidget*> EqiupmentSlotsMap;
 
     void InitEquipment();
-    void InitEquipmentSlot(USizeBox* Box, UAwesomeItemDataWidget* ItemWidget, EEquipmentType Type);
+    void InitEquipmentSlot(USizeBox* Box, UItemDataWidget* ItemWidget, EEquipmentType Type);
 
     void OnNewPawn(APawn* NewPawn);
     void OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type);

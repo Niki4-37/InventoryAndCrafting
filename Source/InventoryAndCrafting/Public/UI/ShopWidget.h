@@ -5,32 +5,33 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeInventoryWidget.generated.h"
+#include "ShopWidget.generated.h"
 
 class UUniformGridPanel;
-class UTextBlock;
 /**
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeInventoryWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UShopWidget : public UUserWidget
 {
     GENERATED_BODY()
 
 public:
     virtual void NativeOnInitialized() override;
 
+    virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
+
 protected:
     UPROPERTY(meta = (BindWidget))
-    UUniformGridPanel* InventoryItemSlots;
-
-    UPROPERTY(meta = (BindWidget))
-    UTextBlock* NoBackpackText;
+    UUniformGridPanel* ShopItemSlots;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "10"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    TSubclassOf<UUserWidget> ConfirmWidgetClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (Clampmin = "1", Clampmax = "5"))
     uint8 SlotsInRow{4};
 
 private:

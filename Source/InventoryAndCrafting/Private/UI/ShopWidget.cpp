@@ -1,25 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeShopWidget.h"
-#include "UI/AwesomeItemDataWidget.h"
+#include "UI/ShopWidget.h"
+#include "UI/ItemDataWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/InventoryComponent.h"
 #include "UI/AwesomeDragDropItemOperation.h"
 #include "UI/ConfirmWidget.h"
 
-void UAwesomeShopWidget::NativeOnInitialized()
+void UShopWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
     if (GetOwningPlayer())
     {
-        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UAwesomeShopWidget::OnNewPawn);
+        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UShopWidget::OnNewPawn);
         OnNewPawn(GetOwningPlayerPawn());
     }
 }
 
-bool UAwesomeShopWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+bool UShopWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
     auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
@@ -43,22 +43,22 @@ bool UAwesomeShopWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
-void UAwesomeShopWidget::OnNewPawn(APawn* NewPawn)
+void UShopWidget::OnNewPawn(APawn* NewPawn)
 {
     if (!NewPawn) return;
     const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
     if (!InventoryComponent) return;
     if (!InventoryComponent->OnStuffEquiped.IsBoundToObject(this))
     {
-        InventoryComponent->OnStuffEquiped.AddUObject(this, &UAwesomeShopWidget::OnStuffEquiped);
+        InventoryComponent->OnStuffEquiped.AddUObject(this, &UShopWidget::OnStuffEquiped);
     }
     if (!InventoryComponent->OnSlotChanged.IsBoundToObject(this))
     {
-        InventoryComponent->OnSlotChanged.AddUObject(this, &UAwesomeShopWidget::OnSlotChanged);
+        InventoryComponent->OnSlotChanged.AddUObject(this, &UShopWidget::OnSlotChanged);
     }
 }
 
-void UAwesomeShopWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type)
+void UShopWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type)
 {
     if (!ShopItemSlots || Type != ESlotLocationType::ShopSlots) return;
     ShopItemSlots->ClearChildren();
@@ -66,7 +66,7 @@ void UAwesomeShopWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocatio
     uint8 SlotIndex{0};
     for (const auto& SlotData : Slots)
     {
-        auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        auto ItemDataWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (!ItemDataWidget) continue;
         ItemDataWidget->SetDataSlot(SlotData);
         ItemDataWidget->SetItemIndex(SlotIndex);
@@ -79,10 +79,10 @@ void UAwesomeShopWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocatio
     }
 }
 
-void UAwesomeShopWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type)
+void UShopWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type)
 {
     if (!ShopItemSlots || Type != ESlotLocationType::ShopSlots) return;
-    // auto ItemDataWidget = Cast<UAwesomeItemDataWidget>(ShopItemSlots->GetChildAt(SlotIndex));
+    // auto ItemDataWidget = Cast<UItemDataWidget>(ShopItemSlots->GetChildAt(SlotIndex));
     // if (!ItemDataWidget) return;
     // ItemDataWidget->SetDataSlot(NewSlotData);
 }

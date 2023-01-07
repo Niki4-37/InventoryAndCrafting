@@ -9,9 +9,9 @@
 #include "UI/AwesomeCraftingDeckWidget.h"
 #include "UI/AwesomeDropBoxWidget.h"
 #include "UI/AwesomeEquipmentWidget.h"
-#include "UI/AwesomeInventoryWidget.h"
-#include "UI/AwesomePersonalSlotsWidget.h"
-#include "UI/AwesomeShopWidget.h"
+#include "UI/InventoryWidget.h"
+#include "UI/PersonalSlotsWidget.h"
+#include "UI/ShopWidget.h"
 
 void UAwesomeHUDWidget::NativeOnInitialized()
 {
@@ -61,7 +61,7 @@ void UAwesomeHUDWidget::InitWidget()
     }
     if (InventoriPosition)
     {
-        const auto WidgetToAdd = CreateWidget<UAwesomeInventoryWidget>(GetOwningPlayer(), InventoriWidgetClass);
+        const auto WidgetToAdd = CreateWidget<UInventoryWidget>(GetOwningPlayer(), InventoriWidgetClass);
         if (WidgetToAdd)
         {
             InventoriPosition->AddChild(WidgetToAdd);
@@ -77,7 +77,7 @@ void UAwesomeHUDWidget::InitWidget()
     }
     if (PersonalSlotsPosition)
     {
-        const auto WidgetToAdd = CreateWidget<UAwesomePersonalSlotsWidget>(GetOwningPlayer(), PersonalSlotsWidgetClass);
+        const auto WidgetToAdd = CreateWidget<UPersonalSlotsWidget>(GetOwningPlayer(), PersonalSlotsWidgetClass);
         if (WidgetToAdd)
         {
             PersonalSlotsPosition->AddChild(WidgetToAdd);
@@ -93,7 +93,7 @@ void UAwesomeHUDWidget::InitWidget()
     }
     if (ShopPosition)
     {
-        const auto WidgetToAdd = CreateWidget<UAwesomeShopWidget>(GetOwningPlayer(), ShopWidgetClass);
+        const auto WidgetToAdd = CreateWidget<UShopWidget>(GetOwningPlayer(), ShopWidgetClass);
         if (WidgetToAdd)
         {
             ShopPosition->AddChild(WidgetToAdd);

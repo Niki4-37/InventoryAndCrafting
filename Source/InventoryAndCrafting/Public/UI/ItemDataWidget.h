@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeItemDataWidget.generated.h"
+#include "ItemDataWidget.generated.h"
 
 class UBorder;
 class UTexture2D;
@@ -13,7 +13,7 @@ class UTexture2D;
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeItemDataWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UItemDataWidget : public UUserWidget
 {
     GENERATED_BODY()
 

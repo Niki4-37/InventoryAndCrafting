@@ -1,39 +1,39 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeInventoryWidget.h"
-#include "UI/AwesomeItemDataWidget.h"
+#include "UI/InventoryWidget.h"
+#include "UI/ItemDataWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/TextBlock.h"
 #include "Components/InventoryComponent.h"
 
-void UAwesomeInventoryWidget::NativeOnInitialized()
+void UInventoryWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
     if (GetOwningPlayer())
     {
-        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UAwesomeInventoryWidget::OnNewPawn);
+        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UInventoryWidget::OnNewPawn);
         OnNewPawn(GetOwningPlayerPawn());
     }
 }
 
-void UAwesomeInventoryWidget::OnNewPawn(APawn* NewPawn)
+void UInventoryWidget::OnNewPawn(APawn* NewPawn)
 {
     if (!NewPawn) return;
     const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
     if (!InventoryComponent) return;
     if (!InventoryComponent->OnStuffEquiped.IsBoundToObject(this))
     {
-        InventoryComponent->OnStuffEquiped.AddUObject(this, &UAwesomeInventoryWidget::OnStuffEquiped);
+        InventoryComponent->OnStuffEquiped.AddUObject(this, &UInventoryWidget::OnStuffEquiped);
     }
     if (!InventoryComponent->OnSlotChanged.IsBoundToObject(this))
     {
-        InventoryComponent->OnSlotChanged.AddUObject(this, &UAwesomeInventoryWidget::OnSlotChanged);
+        InventoryComponent->OnSlotChanged.AddUObject(this, &UInventoryWidget::OnSlotChanged);
     }
 }
 
-void UAwesomeInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type)
+void UInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type)
 {
     if (!InventoryItemSlots || Type != ESlotLocationType::Inventory) return;
     InventoryItemSlots->ClearChildren();
@@ -46,7 +46,7 @@ void UAwesomeInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLo
     uint8 SlotIndex{0};
     for (const auto& SlotData : Slots)
     {
-        auto ItemDataWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+        auto ItemDataWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
         if (!ItemDataWidget) continue;
         ItemDataWidget->SetDataSlot(SlotData);
         ItemDataWidget->SetItemIndex(SlotIndex);
@@ -59,10 +59,10 @@ void UAwesomeInventoryWidget::OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLo
     }
 }
 
-void UAwesomeInventoryWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type)
+void UInventoryWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type)
 {
     if (!InventoryItemSlots || Type != ESlotLocationType::Inventory) return;
-    auto ItemDataWidget = Cast<UAwesomeItemDataWidget>(InventoryItemSlots->GetChildAt(SlotIndex));
+    auto ItemDataWidget = Cast<UItemDataWidget>(InventoryItemSlots->GetChildAt(SlotIndex));
     if (!ItemDataWidget) return;
     ItemDataWidget->SetDataSlot(NewSlotData);
 }

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/AwesomeEquipmentWidget.h"
-#include "UI/AwesomeItemDataWidget.h"
+#include "UI/ItemDataWidget.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
@@ -23,32 +23,32 @@ void UAwesomeEquipmentWidget::NativeOnInitialized()
 
 void UAwesomeEquipmentWidget::InitEquipment()
 {
-    auto HeadSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    auto HeadSlotWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(HeadSlotBox, HeadSlotWidget, EEquipmentType::Head);
 
-    auto BackSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    auto BackSlotWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(BackSlotBox, BackSlotWidget, EEquipmentType::Back);
 
-    auto RightArmSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    auto RightArmSlotWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(RightArmSlotBox, RightArmSlotWidget, EEquipmentType::RightArm);
 
-    auto TorsoSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    auto TorsoSlotWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(TorsoSlotBox, TorsoSlotWidget, EEquipmentType::Torso);
 
-    auto LeftArmSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    auto LeftArmSlotWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(LeftArmSlotBox, LeftArmSlotWidget, EEquipmentType::LeftArm);
 
-    auto LegsSlotWidget = CreateWidget<UAwesomeItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
+    auto LegsSlotWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(LegsSlotBox, LegsSlotWidget, EEquipmentType::Legs);
 
-    for (TPair<EEquipmentType, UAwesomeItemDataWidget*>& Element : EqiupmentSlotsMap)
+    for (TPair<EEquipmentType, UItemDataWidget*>& Element : EqiupmentSlotsMap)
     {
         Element.Value->SetSlotLocationType(ESlotLocationType::Equipment);
         Element.Value->SetEquipmentType(Element.Key);
     }
 }
 
-void UAwesomeEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UAwesomeItemDataWidget* ItemWidget, EEquipmentType Type)
+void UAwesomeEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UItemDataWidget* ItemWidget, EEquipmentType Type)
 {
     if (!ItemWidget || !Box) return;
 

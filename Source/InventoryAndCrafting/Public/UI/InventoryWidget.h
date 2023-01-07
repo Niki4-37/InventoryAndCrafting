@@ -5,14 +5,15 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomePersonalSlotsWidget.generated.h"
+#include "InventoryWidget.generated.h"
 
 class UUniformGridPanel;
+class UTextBlock;
 /**
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomePersonalSlotsWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UInventoryWidget : public UUserWidget
 {
     GENERATED_BODY()
 
@@ -21,7 +22,10 @@ public:
 
 protected:
     UPROPERTY(meta = (BindWidget))
-    UUniformGridPanel* PersonalSlots;
+    UUniformGridPanel* InventoryItemSlots;
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* NoBackpackText;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
@@ -32,5 +36,5 @@ protected:
 private:
     void OnNewPawn(APawn* NewPawn);
     void OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type);
-    void UpdateItemSlot(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type);
+    void OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type);
 };

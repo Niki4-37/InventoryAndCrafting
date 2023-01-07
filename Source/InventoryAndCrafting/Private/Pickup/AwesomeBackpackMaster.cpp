@@ -1,8 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Pickup/AwesomeBackpackMaster.h"
-#include "Player/AwesomeBaseCharacter.h"
+//#include "Player/AwesomeBaseCharacter.h"
 #include "Net/UnrealNetwork.h"
+
+#include "Components/InventoryComponent.h"
 
 AAwesomeBackpackMaster::AAwesomeBackpackMaster()
 {
@@ -17,10 +19,16 @@ AAwesomeBackpackMaster::AAwesomeBackpackMaster()
 
 void AAwesomeBackpackMaster::Interact(AActor* InteractiveActor)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
-    if (!Player) return;
+    if (!InteractiveActor) return;
+    const auto InventoryComponent = InteractiveActor->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
 
-    Player->EquipBackpack_OnServer(this);
+    InventoryComponent->EquipBackpack_OnServer(this);
+
+    // const auto Player = Cast<AAwesomeBaseCharacter>(InteractiveActor);
+    // if (!Player) return;
+
+    // Player->EquipBackpack_OnServer(this);
 }
 
 bool AAwesomeBackpackMaster::FindStackOfSameItems(const FSlot& Item, uint8& OutSlotIndex, int32& OutAmount, bool& bOutCanStack)
@@ -144,8 +152,12 @@ bool AAwesomeBackpackMaster::UpdateSlotItemData(const uint8 Index, const int32 A
 
 void AAwesomeBackpackMaster::UpdateOwnerWidget(const FSlot& Item, const uint8 Index)
 {
-    const auto Player = Cast<AAwesomeBaseCharacter>(GetOwner());
-    if (!Player) return;
-    //Player->UpdateInventoryWidgetSlotData(Item, Index);
-    Player->UpdateWidgetSlotData(Item, Index, ESlotLocationType::Inventory);
+    // const auto Player = Cast<AAwesomeBaseCharacter>(GetOwner());
+    // if (!Player) return;
+    //  Player->UpdateWidgetSlotData(Item, Index, ESlotLocationType::Inventory);
+    if (!GetOwner()) return;
+    const auto InventoryComponent = GetOwner()->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+
+    InventoryComponent->UpdateWidgetSlotData(Item, Index, ESlotLocationType::Inventory);
 }

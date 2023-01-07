@@ -7,10 +7,8 @@
 #include "AwesomeTypes.h"
 #include "AwesomePlayerController.generated.h"
 
-class AAwesomePickupMaster;
-class UAwesomeHUDWidget;
+class UPlayerHUDWidget;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHUDWidgetSwitchSignature, ESlateVisibility);
 /**
  *
  */
@@ -20,23 +18,20 @@ class INVENTORYANDCRAFTING_API AAwesomePlayerController : public APlayerControll
     GENERATED_BODY()
 
 public:
-    FOnHUDWidgetSwitchSignature OnHUDWidgetSwitch;
-
-    void SpawnDroppedItem(const FSlot& DroppedItem);
-
     void OpenInventory();
+    void CloseInventory();
 
 protected:
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<AAwesomePickupMaster> PickupMasterClass;
-
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> HUDWidgetClass;
 
     virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
+    virtual void OnPossess(APawn* aPawn) override;
 
 private:
     UPROPERTY()
-    UAwesomeHUDWidget* HUDWidget;
+    UPlayerHUDWidget* HUDWidget;
+
+    void OpenCloseInventory();
 };

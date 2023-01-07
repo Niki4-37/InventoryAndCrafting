@@ -1,29 +1,29 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeHUDWidget.h"
+#include "UI/PlayerHUDWidget.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/InventoryComponent.h"
-#include "UI/AwesomeCraftingDeckWidget.h"
-#include "UI/AwesomeDropBoxWidget.h"
-#include "UI/AwesomeEquipmentWidget.h"
+#include "UI/CraftingDeckWidget.h"
+#include "UI/DropBoxWidget.h"
+#include "UI/EquipmentWidget.h"
 #include "UI/InventoryWidget.h"
 #include "UI/PersonalSlotsWidget.h"
 #include "UI/ShopWidget.h"
 
-void UAwesomeHUDWidget::NativeOnInitialized()
+void UPlayerHUDWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
     if (SwitchToCraftingButton)
     {
-        SwitchToCraftingButton->OnClicked.AddDynamic(this, &UAwesomeHUDWidget::OnSwitchCraftingPanel);
+        SwitchToCraftingButton->OnClicked.AddDynamic(this, &UPlayerHUDWidget::OnSwitchCraftingPanel);
     }
     if (BackButton)
     {
-        BackButton->OnClicked.AddDynamic(this, &UAwesomeHUDWidget::OnGoBack);
+        BackButton->OnClicked.AddDynamic(this, &UPlayerHUDWidget::OnGoBack);
     }
     if (WidgetSwitcherBetween && InventoryAndEquipmentPanel)
     {
@@ -31,29 +31,29 @@ void UAwesomeHUDWidget::NativeOnInitialized()
     }
     if (GetOwningPlayer())
     {
-        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UAwesomeHUDWidget::OnNewPawn);
+        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UPlayerHUDWidget::OnNewPawn);
         OnNewPawn(GetOwningPlayerPawn());
     }
 
     InitWidget();
 }
 
-void UAwesomeHUDWidget::OnNewPawn(APawn* NewPawn)
+void UPlayerHUDWidget::OnNewPawn(APawn* NewPawn)
 {
     if (!NewPawn) return;
     const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
     if (!InventoryComponent) return;
     if (!InventoryComponent->OnTrading.IsBoundToObject(this))
     {
-        InventoryComponent->OnTrading.AddUObject(this, &UAwesomeHUDWidget::OnTrading);
+        InventoryComponent->OnTrading.AddUObject(this, &UPlayerHUDWidget::OnTrading);
     }
 }
 
-void UAwesomeHUDWidget::InitWidget()
+void UPlayerHUDWidget::InitWidget()
 {
     if (DropBoxPosition)
     {
-        const auto WidgetToAdd = CreateWidget<UAwesomeDropBoxWidget>(GetOwningPlayer(), DropBoxWidgetClass);
+        const auto WidgetToAdd = CreateWidget<UDropBoxWidget>(GetOwningPlayer(), DropBoxWidgetClass);
         if (WidgetToAdd)
         {
             DropBoxPosition->AddChild(WidgetToAdd);
@@ -69,7 +69,7 @@ void UAwesomeHUDWidget::InitWidget()
     }
     if (EquipmentPosition)
     {
-        const auto WidgetToAdd = CreateWidget<UAwesomeEquipmentWidget>(GetOwningPlayer(), EquipmentWidgetClass);
+        const auto WidgetToAdd = CreateWidget<UEquipmentWidget>(GetOwningPlayer(), EquipmentWidgetClass);
         if (WidgetToAdd)
         {
             EquipmentPosition->AddChild(WidgetToAdd);
@@ -85,7 +85,7 @@ void UAwesomeHUDWidget::InitWidget()
     }
     if (CraftingDeckPosition)
     {
-        const auto WidgetToAdd = CreateWidget<UAwesomeCraftingDeckWidget>(GetOwningPlayer(), CraftingDeckWidgetClass);
+        const auto WidgetToAdd = CreateWidget<UCraftingDeckWidget>(GetOwningPlayer(), CraftingDeckWidgetClass);
         if (WidgetToAdd)
         {
             CraftingDeckPosition->AddChild(WidgetToAdd);
@@ -102,7 +102,7 @@ void UAwesomeHUDWidget::InitWidget()
     }
 }
 
-void UAwesomeHUDWidget::OnSwitchCraftingPanel()
+void UPlayerHUDWidget::OnSwitchCraftingPanel()
 {
     if (WidgetSwitcherBetween && CraftingPanel)
     {
@@ -110,7 +110,7 @@ void UAwesomeHUDWidget::OnSwitchCraftingPanel()
     }
 }
 
-void UAwesomeHUDWidget::OnGoBack()
+void UPlayerHUDWidget::OnGoBack()
 {
     if (WidgetSwitcherBetween && InventoryAndEquipmentPanel)
     {
@@ -118,11 +118,24 @@ void UAwesomeHUDWidget::OnGoBack()
     }
 }
 
-void UAwesomeHUDWidget::OnTrading(bool Enable)
+void UPlayerHUDWidget::OnTrading(bool Enable)
 {
-    Enable ? ShopPosition->SetVisibility(ESlateVisibility::Visible) : ShopPosition->SetVisibility(ESlateVisibility::Hidden);
     if (SwitchToCraftingButton)
     {
         SwitchToCraftingButton->SetIsEnabled(!Enable);
+    }
+
+    if (Enable)
+    {
+        ShopPosition->SetVisibility(ESlateVisibility::Visible);
+        SetVisibility(ESlateVisibility::Visible);
+        GetOwningPlayer()->SetInputMode(FInputModeGameAndUI());
+        GetOwningPlayer()->bShowMouseCursor = true;
+
+        GetOwningPlayerPawn()->DisableInput(GetOwningPlayer());
+    }
+    else
+    {
+        ShopPosition->SetVisibility(ESlateVisibility::Hidden);
     }
 }

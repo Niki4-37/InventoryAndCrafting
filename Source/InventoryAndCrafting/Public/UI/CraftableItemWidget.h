@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeCraftableItemWidget.generated.h"
+#include "CraftableItemWidget.generated.h"
 
 class UBorder;
 class UTextBlock;
@@ -31,7 +31,7 @@ public:
 };
 
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeCraftableItemWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UCraftableItemWidget : public UUserWidget
 {
     GENERATED_BODY()
 

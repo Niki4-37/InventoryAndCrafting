@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "Blueprint/DragDropOperation.h"
 #include "AwesomeTypes.h"
-#include "AwesomeDragDropItemOperation.generated.h"
+#include "DragDropItemOperation.generated.h"
 
 /**
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeDragDropItemOperation : public UDragDropOperation
+class INVENTORYANDCRAFTING_API UDragDropItemOperation : public UDragDropOperation
 {
     GENERATED_BODY()
 

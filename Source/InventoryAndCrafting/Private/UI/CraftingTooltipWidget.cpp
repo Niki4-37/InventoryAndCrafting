@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeCraftingTooltipWidget.h"
+#include "UI/CraftingTooltipWidget.h"
 #include "Components/HorizontalBox.h"
-#include "UI/AwesomeCraftableItemWidget.h"
+#include "UI/CraftableItemWidget.h"
 
-void UAwesomeCraftingTooltipWidget::InitWidget(const TArray<FSlot> InRecipe)
+void UCraftingTooltipWidget::InitWidget(const TArray<FSlot> InRecipe)
 {
     if (CraftingRecipeBox)
     {
@@ -14,7 +14,7 @@ void UAwesomeCraftingTooltipWidget::InitWidget(const TArray<FSlot> InRecipe)
             if (!ItemDataPointer) continue;
             const auto ItemData = *ItemDataPointer;
 
-            auto CraftableComponentWidget = CreateWidget<UAwesomeCraftableItemWidget>(GetOwningPlayer(), CraftableItemWidgetClass);
+            auto CraftableComponentWidget = CreateWidget<UCraftableItemWidget>(GetOwningPlayer(), CraftableItemWidgetClass);
             if (!CraftableComponentWidget) continue;
             CraftableComponentWidget->InitWidget(ItemData.Icon, CraftingComponent.Amount, NAME_None, {});
             CraftingRecipeBox->AddChild(CraftableComponentWidget);

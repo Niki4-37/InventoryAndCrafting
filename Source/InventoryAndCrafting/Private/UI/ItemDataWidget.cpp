@@ -3,7 +3,7 @@
 #include "UI/ItemDataWidget.h"
 #include "Components/Border.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "UI/AwesomeDragDropItemOperation.h"
+#include "UI/DragDropItemOperation.h"
 #include "UI/ConfirmWidget.h"
 #include "Components/InventoryComponent.h"
 
@@ -36,7 +36,7 @@ FReply UItemDataWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, con
 void UItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
     if (!SlotData.Amount) return;
-    auto DragDrop = Cast<UAwesomeDragDropItemOperation>(UWidgetBlueprintLibrary::CreateDragDropOperation(UAwesomeDragDropItemOperation::StaticClass()));
+    auto DragDrop = Cast<UDragDropItemOperation>(UWidgetBlueprintLibrary::CreateDragDropOperation(UDragDropItemOperation::StaticClass()));
     if (DragDrop)
     {
         DragDrop->SetSlotData(FSlot(SlotData.DataTableRowHandle, 1));
@@ -59,7 +59,7 @@ void UItemDataWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FP
 
 bool UItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-    auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
+    auto DragDropOperation = Cast<UDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
     if (DragDropOperation->GetItemFromLocationType() == ESlotLocationType::ShopSlots)

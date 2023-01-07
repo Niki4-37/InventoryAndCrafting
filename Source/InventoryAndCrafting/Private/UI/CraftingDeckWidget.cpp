@@ -1,18 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeCraftingDeckWidget.h"
+#include "UI/CraftingDeckWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
-#include "UI/AwesomeCraftableItemWidget.h"
+#include "UI/CraftableItemWidget.h"
 
-void UAwesomeCraftingDeckWidget::NativeOnInitialized()
+void UCraftingDeckWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
     InitWidget();
 }
 
-void UAwesomeCraftingDeckWidget::InitWidget()
+void UCraftingDeckWidget::InitWidget()
 {
     if (!CraftableItemsBox) return;
 
@@ -30,7 +30,7 @@ void UAwesomeCraftingDeckWidget::InitWidget()
         const auto ItemData = *ItemDataPointer;
         if (!ItemData.bCanCraft) continue;
 
-        auto CraftableItemWidget = CreateWidget<UAwesomeCraftableItemWidget>(GetOwningPlayer(), CraftableItemWidgetClass);
+        auto CraftableItemWidget = CreateWidget<UCraftableItemWidget>(GetOwningPlayer(), CraftableItemWidgetClass);
         if (!CraftableItemWidget) continue;
         CraftableItemWidget->InitWidget(ItemData.Icon, ItemData.OutCraftedAmount, ItemName, ItemData.Recipe);
         auto GridObject = CraftableItemsBox->AddChildToUniformGrid(CraftableItemWidget, SlotIndex / SlotsInRow, SlotIndex % SlotsInRow);

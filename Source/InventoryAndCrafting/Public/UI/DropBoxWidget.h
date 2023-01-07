@@ -5,14 +5,14 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeDropBoxWidget.generated.h"
+#include "DropBoxWidget.generated.h"
 
 class UBorder;
 /**
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeDropBoxWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UDropBoxWidget : public UUserWidget
 {
     GENERATED_BODY()
 

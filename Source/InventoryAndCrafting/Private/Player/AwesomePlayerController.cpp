@@ -1,8 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/AwesomePlayerController.h"
-#include "UI/AwesomeHUDWidget.h"
+#include "UI/PlayerHUDWidget.h"
 #include "Components/InventoryComponent.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PawnMovementComponent.h"
 
 void AAwesomePlayerController::BeginPlay()
 {
@@ -10,7 +12,7 @@ void AAwesomePlayerController::BeginPlay()
 
     if (IsLocalPlayerController())
     {
-        HUDWidget = CreateWidget<UAwesomeHUDWidget>(this, HUDWidgetClass);
+        HUDWidget = CreateWidget<UPlayerHUDWidget>(this, HUDWidgetClass);
         if (HUDWidget)
         {
             HUDWidget->AddToViewport();
@@ -38,6 +40,8 @@ void AAwesomePlayerController::OpenInventory()
     HUDWidget->SetVisibility(ESlateVisibility::Visible);
     SetInputMode(FInputModeGameAndUI());
     bShowMouseCursor = true;
+
+    GetPawn()->DisableInput(this);
 }
 
 void AAwesomePlayerController::CloseInventory()
@@ -46,6 +50,8 @@ void AAwesomePlayerController::CloseInventory()
     HUDWidget->SetVisibility(ESlateVisibility::Hidden);
     SetInputMode(FInputModeGameOnly());
     bShowMouseCursor = false;
+
+    GetPawn()->EnableInput(this);
 
     const auto InventoryComponent = GetPawn()->FindComponentByClass<UInventoryComponent>();
     if (InventoryComponent)

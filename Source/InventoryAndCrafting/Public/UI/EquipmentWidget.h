@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeEquipmentWidget.generated.h"
+#include "EquipmentWidget.generated.h"
 
 class UUniformGridPanel;
 class USizeBox;
@@ -15,7 +15,7 @@ class UTextBlock;
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeEquipmentWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UEquipmentWidget : public UUserWidget
 {
     GENERATED_BODY()
 

@@ -51,7 +51,6 @@ public:
 
     void UpdateWidgetSlotData(const FSlot& Item, const uint8 Index, ESlotLocationType Type);
 
-    // Testing
     void UpdateShopWidgetAfterTransaction(const TArray<FSlot>& Goods);
 
     bool HasEquipmentToSwap(EEquipmentType FirstSlotType, EEquipmentType SecondSlotType);
@@ -131,9 +130,6 @@ private:
 
     UFUNCTION(Client, unreliable)
     void OnTrading_OnClient(bool Enabled);
-
-    UFUNCTION(Client, unreliable)
-    void OpenInventory_OnClient();
 
     // UFUNCTION()
     // void MoneyChanged_OnRep();

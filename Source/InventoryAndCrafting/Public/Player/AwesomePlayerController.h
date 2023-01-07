@@ -7,7 +7,7 @@
 #include "AwesomeTypes.h"
 #include "AwesomePlayerController.generated.h"
 
-class UAwesomeHUDWidget;
+class UPlayerHUDWidget;
 
 /**
  *
@@ -31,7 +31,7 @@ protected:
 
 private:
     UPROPERTY()
-    UAwesomeHUDWidget* HUDWidget;
+    UPlayerHUDWidget* HUDWidget;
 
     void OpenCloseInventory();
 };

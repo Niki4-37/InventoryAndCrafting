@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeCraftableItemWidget.h"
+#include "UI/CraftableItemWidget.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
 #include "Components/InventoryComponent.h"
 #include "Pickup/AwesomeBackpackMaster.h"
 
-void UAwesomeCraftableItemWidget::InitWidget(UTexture2D* Icon, int32 Amount, const FName& InItemName, const TArray<FSlot> InRecipe)
+void UCraftableItemWidget::InitWidget(UTexture2D* Icon, int32 Amount, const FName& InItemName, const TArray<FSlot> InRecipe)
 {
     CraftingOutAmount = Amount;
     Recipe = InRecipe;
@@ -23,13 +23,13 @@ void UAwesomeCraftableItemWidget::InitWidget(UTexture2D* Icon, int32 Amount, con
     }
 }
 
-FReply UAwesomeCraftableItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UCraftableItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     CraftTheItem();
     return OnMouseButtonDown(InGeometry, InMouseEvent).NativeReply;
 }
 
-bool UAwesomeCraftableItemWidget::CheckForCraftingComponents(UInventoryComponent* Inventory)
+bool UCraftableItemWidget::CheckForCraftingComponents(UInventoryComponent* Inventory)
 {
     if (!Inventory || !Inventory->GetBackpack()) return false;
 
@@ -47,7 +47,7 @@ bool UAwesomeCraftableItemWidget::CheckForCraftingComponents(UInventoryComponent
     return true;
 }
 
-void UAwesomeCraftableItemWidget::CraftTheItem()
+void UCraftableItemWidget::CraftTheItem()
 {
     if (!GetOwningPlayerPawn()) return;
     const auto InventoryComonent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
@@ -72,7 +72,7 @@ void UAwesomeCraftableItemWidget::CraftTheItem()
     }
 }
 
-void UAwesomeCraftableItemWidget::SpendComponents(AAwesomeBackpackMaster* Backpack)
+void UCraftableItemWidget::SpendComponents(AAwesomeBackpackMaster* Backpack)
 {
     if (ComponentsFromRecipe.Num() == 0 || !Backpack) return;
     for (auto Component : ComponentsFromRecipe)

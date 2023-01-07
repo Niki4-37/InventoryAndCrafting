@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeCraftingTooltipWidget.generated.h"
+#include "CraftingTooltipWidget.generated.h"
 
 class UHorizontalBox;
 /**
  *
  */
-UCLASS() class INVENTORYANDCRAFTING_API UAwesomeCraftingTooltipWidget : public UUserWidget
+UCLASS() class INVENTORYANDCRAFTING_API UCraftingTooltipWidget : public UUserWidget
 {
     GENERATED_BODY()
 

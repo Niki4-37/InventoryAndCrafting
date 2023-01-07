@@ -58,7 +58,6 @@ void UInventoryComponent::StartTrading_OnServer_Implementation(AAwesomeShop* Sho
     ActiveShop->AddBuyer(GetOwner());
     OnStuffEquiped_OnClient(Shop->GetGoods(), ESlotLocationType::ShopSlots);
     OnTrading_OnClient(true);
-    OpenInventory_OnClient();
 }
 
 void UInventoryComponent::StopTrading_OnServer_Implementation()
@@ -66,6 +65,7 @@ void UInventoryComponent::StopTrading_OnServer_Implementation()
     if (!ActiveShop) return;
     ActiveShop->StopTrading(GetOwner());
     ActiveShop = nullptr;
+    OnTrading_OnClient(false);
 }
 
 void UInventoryComponent::PickupItem_OnServer_Implementation(AAwesomePickupMaster* Pickup)
@@ -536,17 +536,6 @@ void UInventoryComponent::SetStaticMesh_Multicast_Implementation(AAwesomeEquipme
 void UInventoryComponent::OnTrading_OnClient_Implementation(bool Enabled)
 {
     OnTrading.Broadcast(Enabled);
-}
-
-void UInventoryComponent::OpenInventory_OnClient_Implementation()
-{
-    const auto Character = GetOwner<ACharacter>();
-    if (!Character) return;
-    const auto AwesomeController = Cast<AAwesomePlayerController>(Character->GetController());
-    if (AwesomeController)
-    {
-        AwesomeController->OpenInventory();
-    }
 }
 
 void UInventoryComponent::OnMoneyChanged_OnClient_Implementation(int32 Value)

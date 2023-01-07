@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeEquipmentWidget.h"
+#include "UI/EquipmentWidget.h"
 #include "UI/ItemDataWidget.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
@@ -8,7 +8,7 @@
 #include "Components/UniformGridSlot.h"
 #include "Components/InventoryComponent.h"
 
-void UAwesomeEquipmentWidget::NativeOnInitialized()
+void UEquipmentWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
@@ -16,12 +16,12 @@ void UAwesomeEquipmentWidget::NativeOnInitialized()
 
     if (GetOwningPlayer())
     {
-        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UAwesomeEquipmentWidget::OnNewPawn);
+        GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UEquipmentWidget::OnNewPawn);
         OnNewPawn(GetOwningPlayerPawn());
     }
 }
 
-void UAwesomeEquipmentWidget::InitEquipment()
+void UEquipmentWidget::InitEquipment()
 {
     auto HeadSlotWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
     InitEquipmentSlot(HeadSlotBox, HeadSlotWidget, EEquipmentType::Head);
@@ -48,7 +48,7 @@ void UAwesomeEquipmentWidget::InitEquipment()
     }
 }
 
-void UAwesomeEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UItemDataWidget* ItemWidget, EEquipmentType Type)
+void UEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UItemDataWidget* ItemWidget, EEquipmentType Type)
 {
     if (!ItemWidget || !Box) return;
 
@@ -60,22 +60,22 @@ void UAwesomeEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UItemDataWidget* 
     EqiupmentSlotsMap.Add(Type, ItemWidget);
 }
 
-void UAwesomeEquipmentWidget::OnNewPawn(APawn* NewPawn)
+void UEquipmentWidget::OnNewPawn(APawn* NewPawn)
 {
     if (!NewPawn) return;
     const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
     if (!InventoryComponent) return;
     if (!InventoryComponent->OnEquipmentSlotDataChanged.IsBoundToObject(this))
     {
-        InventoryComponent->OnEquipmentSlotDataChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged);
+        InventoryComponent->OnEquipmentSlotDataChanged.AddUObject(this, &UEquipmentWidget::OnEquipmentSlotDataChanged);
     }
     if (!InventoryComponent->OnMoneyValueChanged.IsBoundToObject(this))
     {
-        InventoryComponent->OnMoneyValueChanged.AddUObject(this, &UAwesomeEquipmentWidget::OnMoneyValueChanged);
+        InventoryComponent->OnMoneyValueChanged.AddUObject(this, &UEquipmentWidget::OnMoneyValueChanged);
     }
 }
 
-void UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type)
+void UEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type)
 {
     auto SlotWidget = EqiupmentSlotsMap.FindChecked(Type);
     if (!SlotWidget) return;
@@ -86,7 +86,7 @@ void UAwesomeEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotDat
     }
 }
 
-void UAwesomeEquipmentWidget::OnMoneyValueChanged(int32 Value)
+void UEquipmentWidget::OnMoneyValueChanged(int32 Value)
 {
     if (MoneyValueText)
     {

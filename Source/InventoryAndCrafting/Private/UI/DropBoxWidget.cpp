@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/AwesomeDropBoxWidget.h"
-#include "UI/AwesomeDragDropItemOperation.h"
+#include "UI/DropBoxWidget.h"
+#include "UI/DragDropItemOperation.h"
 #include "Components/InventoryComponent.h"
 
-bool UAwesomeDropBoxWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+bool UDropBoxWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-    auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
+    auto DragDropOperation = Cast<UDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
     const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();

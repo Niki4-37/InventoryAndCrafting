@@ -8,6 +8,7 @@
 #include "ShopWidget.generated.h"
 
 class UUniformGridPanel;
+class UButton;
 /**
  *
  */
@@ -25,6 +26,9 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UUniformGridPanel* ShopItemSlots;
 
+    UPROPERTY(meta = (BindWidget))
+    UButton* CloseShopButton;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UUserWidget> ItemDataWidgetClass;
 
@@ -38,4 +42,7 @@ private:
     void OnNewPawn(APawn* NewPawn);
     void OnStuffEquiped(const TArray<FSlot>& Slots, ESlotLocationType Type);
     void OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex, ESlotLocationType Type);
+
+    UFUNCTION()
+    void OnCloseShop();
 };

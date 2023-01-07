@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "AwesomeTypes.h"
-#include "AwesomeCraftingDeckWidget.generated.h"
+#include "CraftingDeckWidget.generated.h"
 
 class UUniformGridPanel;
 class UDataTable;
@@ -13,7 +13,7 @@ class UDataTable;
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeCraftingDeckWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UCraftingDeckWidget : public UUserWidget
 {
     GENERATED_BODY()
 

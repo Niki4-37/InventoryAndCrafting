@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "AwesomeHUDWidget.generated.h"
+#include "PlayerHUDWidget.generated.h"
 
 class UWidgetSwitcher;
 class UCanvasPanel;
@@ -14,7 +14,7 @@ class UButton;
  *
  */
 UCLASS()
-class INVENTORYANDCRAFTING_API UAwesomeHUDWidget : public UUserWidget
+class INVENTORYANDCRAFTING_API UPlayerHUDWidget : public UUserWidget
 {
     GENERATED_BODY()
 

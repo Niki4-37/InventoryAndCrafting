@@ -4,8 +4,9 @@
 #include "UI/ItemDataWidget.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Components/Button.h"
 #include "Components/InventoryComponent.h"
-#include "UI/AwesomeDragDropItemOperation.h"
+#include "UI/DragDropItemOperation.h"
 #include "UI/ConfirmWidget.h"
 
 void UShopWidget::NativeOnInitialized()
@@ -17,11 +18,16 @@ void UShopWidget::NativeOnInitialized()
         GetOwningPlayer()->GetOnNewPawnNotifier().AddUObject(this, &UShopWidget::OnNewPawn);
         OnNewPawn(GetOwningPlayerPawn());
     }
+
+    if (CloseShopButton)
+    {
+        CloseShopButton->OnClicked.AddDynamic(this, &UShopWidget::OnCloseShop);
+    }
 }
 
 bool UShopWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-    auto DragDropOperation = Cast<UAwesomeDragDropItemOperation>(InOperation);
+    auto DragDropOperation = Cast<UDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
     const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
@@ -85,4 +91,11 @@ void UShopWidget::OnSlotChanged(const FSlot& NewSlotData, const uint8 SlotIndex,
     // auto ItemDataWidget = Cast<UItemDataWidget>(ShopItemSlots->GetChildAt(SlotIndex));
     // if (!ItemDataWidget) return;
     // ItemDataWidget->SetDataSlot(NewSlotData);
+}
+
+void UShopWidget::OnCloseShop()
+{
+    const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
+    if (!InventoryComponent) return;
+    InventoryComponent->StopTrading_OnServer();
 }

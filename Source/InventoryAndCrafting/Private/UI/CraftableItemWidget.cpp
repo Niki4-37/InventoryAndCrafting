@@ -4,7 +4,7 @@
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
 #include "Components/InventoryComponent.h"
-#include "Pickup/AwesomeBackpackMaster.h"
+#include "Pickup/BackpackMaster.h"
 
 void UCraftableItemWidget::InitWidget(UTexture2D* Icon, int32 Amount, const FName& InItemName, const TArray<FSlot> InRecipe)
 {
@@ -72,7 +72,7 @@ void UCraftableItemWidget::CraftTheItem()
     }
 }
 
-void UCraftableItemWidget::SpendComponents(AAwesomeBackpackMaster* Backpack)
+void UCraftableItemWidget::SpendComponents(ABackpackMaster* Backpack)
 {
     if (ComponentsFromRecipe.Num() == 0 || !Backpack) return;
     for (auto Component : ComponentsFromRecipe)

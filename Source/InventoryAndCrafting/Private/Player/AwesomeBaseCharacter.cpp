@@ -4,12 +4,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Pickup/AwesomeBackpackMaster.h"
-#include "Pickup/AwesomePickupMaster.h"
+#include "Pickup/BackpackMaster.h"
+#include "Pickup/PickupMaster.h"
 #include "Player/AwesomePlayerController.h"
-#include "Equipment/AwesomeEquipmentActor.h"
+#include "Equipment/EquipmentActor.h"
 #include "Net/UnrealNetwork.h"
-#include "AI/AwesomeShop.h"
+#include "AI/ShopCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/InventoryComponent.h"
@@ -122,7 +122,7 @@ void AAwesomeBaseCharacter::TakeItem()
     {
         UE_LOG(AwesomeCharacter, Display, TEXT("%s"), *HitResult.GetActor()->GetName());
         DrawDebugLine(GetWorld(), Start, HitResult.ImpactPoint, FColor::Blue, false, 5.f, 0U, 3.f);
-        if (const auto ActorWithInterface = Cast<IAwesomeInteractionInterface>(HitResult.GetActor()))
+        if (const auto ActorWithInterface = Cast<IInteractionInterface>(HitResult.GetActor()))
         {
             ActorWithInterface->Interact(this);
         }
@@ -137,39 +137,7 @@ void AAwesomeBaseCharacter::PlayAnimMontage_Multicast_Implementation(UAnimMontag
 {
     PlayAnimMontage(Montage, PlayRate);
 }
-//
-// void AAwesomeBaseCharacter::OnTrading_OnClient_Implementation(bool Enabled)
-//{
-//     OnTrading.Broadcast(Enabled);
-// }
-//
-// void AAwesomeBaseCharacter::OpenInventory_OnClient_Implementation()
-//{
-//     const auto AwesomeController = Cast<AAwesomePlayerController>(Controller);
-//     if (AwesomeController)
-//     {
-//         AwesomeController->OpenInventory();
-//     }
-// }
-//
-// void AAwesomeBaseCharacter::StopTrading_OnServer_Implementation()
-//{
-//     if (!ActiveShop) return;
-//     ActiveShop->StopTrading(this);
-//     ActiveShop = nullptr;
-// }
-//
-//// void AAwesomeBaseCharacter::MoneyChanged_OnRep()
-////{
-////     UE_LOG(AwesomeCharacter, Display, TEXT("Money: %i"), Money);
-////     OnMoneyValueChanged.Broadcast(Money);
-//// }
-//
-// void AAwesomeBaseCharacter::OnMoneyChanged_OnClient_Implementation(int32 Value)
-//{
-//    OnMoneyValueChanged.Broadcast(Value);
-//}
-//
+
 void AAwesomeBaseCharacter::SwitchMovement_OnServer_Implementation(bool bCanMove)
 {
     bCanMove ? GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking) : GetCharacterMovement()->DisableMovement();

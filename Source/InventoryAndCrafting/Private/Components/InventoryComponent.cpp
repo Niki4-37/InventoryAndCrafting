@@ -2,11 +2,11 @@
 
 #include "Components/InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Pickup/AwesomeBackpackMaster.h"
-#include "Pickup/AwesomePickupMaster.h"
-#include "AI/AwesomeShop.h"
+#include "Pickup/BackpackMaster.h"
+#include "Pickup/PickupMaster.h"
+#include "AI/ShopCharacter.h"
 #include "GameFramework/Character.h"
-#include "Equipment/AwesomeEquipmentActor.h"
+#include "Equipment/EquipmentActor.h"
 
 #include "Player/AwesomePlayerController.h"
 
@@ -29,7 +29,7 @@ UInventoryComponent::UInventoryComponent()
     }
 }
 
-void UInventoryComponent::EquipBackpack_OnServer_Implementation(AAwesomeBackpackMaster* Backpack)
+void UInventoryComponent::EquipBackpack_OnServer_Implementation(ABackpackMaster* Backpack)
 {
     const auto Character = Cast<ACharacter>(GetOwner());
     if (!Backpack || !Character) return;
@@ -51,7 +51,7 @@ void UInventoryComponent::EquipBackpack_OnServer_Implementation(AAwesomeBackpack
     OnStuffEquiped_OnClient(EquipedBackpack->GetBackpackSlots(), ESlotLocationType::Inventory);
 }
 
-void UInventoryComponent::StartTrading_OnServer_Implementation(AAwesomeShop* Shop)
+void UInventoryComponent::StartTrading_OnServer_Implementation(AShopCharacter* Shop)
 {
     if (!Shop || ActiveShop) return;
     ActiveShop = Shop;
@@ -68,7 +68,7 @@ void UInventoryComponent::StopTrading_OnServer_Implementation()
     OnTrading_OnClient(false);
 }
 
-void UInventoryComponent::PickupItem_OnServer_Implementation(AAwesomePickupMaster* Pickup)
+void UInventoryComponent::PickupItem_OnServer_Implementation(APickupMaster* Pickup)
 {
     if (!Pickup) return;
     if (TryAddItemToSlots(Pickup->GetPickupItem()))
@@ -153,7 +153,7 @@ bool UInventoryComponent::DropItem(const FSlot& Item)
     const auto SpawningLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 200.f;
     FTransform SpawnTransform(FRotator::ZeroRotator, SpawningLocation, FVector(1.f));
 
-    auto Pickup = GetWorld()->SpawnActorDeferred<AAwesomePickupMaster>(PickupMasterClass, SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+    auto Pickup = GetWorld()->SpawnActorDeferred<APickupMaster>(PickupMasterClass, SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     if (Pickup)
     {
         Pickup->SetPickupItem(Item);
@@ -200,7 +200,7 @@ void UInventoryComponent::InitEnableSlots_OnServer_Implementation()
     for (EEquipmentType EquipmentType = EEquipmentType::Begin; EquipmentType != EEquipmentType::End; ++EquipmentType)
     {
         EquipmentSlots.Add(FEquipmentSlot(EquipmentType, FDataTableRowHandle(), 0));
-        UE_LOG(InventoryComponent_LOG, Display, TEXT("%s"), *UEnum::GetValueAsString(EquipmentType));
+        // UE_LOG(InventoryComponent_LOG, Display, TEXT("%s"), *UEnum::GetValueAsString(EquipmentType));
     }
 }
 
@@ -262,30 +262,43 @@ bool UInventoryComponent::TryAddItemToSlots(const FSlot& Item)
 
     if (FindStackOfSameItems(Item, FoundSlotIndex, FoundAmount, bCanStack))
     {
-        if (bCanStack)
-        {
-            return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, Item.Amount);
-        }
+        return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, Item.Amount);
+    }
 
-        if (!bCanStack && FindEmptySlot(FoundSlotIndex))
-        {
-            PersonalSlots[FoundSlotIndex] = Item;
-            return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, 0);
-        }
-        else
-        {
-            return false;
-        }
-    }
-    else
+    if (FindEmptySlot(FoundSlotIndex))
     {
-        if (FindEmptySlot(FoundSlotIndex))
-        {
-            PersonalSlots[FoundSlotIndex] = Item;
-            return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, 0);
-        }
-        return false;
+        PersonalSlots[FoundSlotIndex] = Item;
+        return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, 0);
     }
+
+    return false;
+
+    // if (FindStackOfSameItems(Item, FoundSlotIndex, FoundAmount, bCanStack))
+    //{
+    //     if (bCanStack)
+    //     {
+    //         return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, Item.Amount);
+    //     }
+
+    //    if (!bCanStack && FindEmptySlot(FoundSlotIndex))
+    //    {
+    //        PersonalSlots[FoundSlotIndex] = Item;
+    //        return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, 0);
+    //    }
+    //    else
+    //    {
+    //        return false;
+    //    }
+    //}
+    // else
+    //{
+    //    if (FindEmptySlot(FoundSlotIndex))
+    //    {
+    //        PersonalSlots[FoundSlotIndex] = Item;
+    //        return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, 0);
+    //    }
+    //    return false;
+    //}
 }
 
 bool UInventoryComponent::TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex)
@@ -460,7 +473,7 @@ void UInventoryComponent::EquipItem(UClass* Class, UStaticMesh* NewMesh, FName S
     /* handled on server */
     const auto Character = Cast<ACharacter>(GetOwner());
     if (!GetWorld() || !Character) return;
-    auto EquippedItem = GetWorld()->SpawnActor<AAwesomeEquipmentActor>(Class);
+    auto EquippedItem = GetWorld()->SpawnActor<AEquipmentActor>(Class);
     if (!EquippedItem) return;
     SetStaticMesh_Multicast(EquippedItem, NewMesh);
     FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
@@ -479,7 +492,7 @@ bool UInventoryComponent::TrySellItem(const FSlot& SellingItem)
 
     OnMoneyChanged_OnClient(Money);
 
-    return ActiveShop->SellItem(SellingItem);
+    return ActiveShop->SellItemInStore(SellingItem);
 }
 
 void UInventoryComponent::TryBuyItem(const FSlot& BuyingItem, uint8 Index, uint8 ToSlotNumber, ESlotLocationType ToLocationType, EEquipmentType ToEquipmentType)
@@ -508,7 +521,7 @@ void UInventoryComponent::TryBuyItem(const FSlot& BuyingItem, uint8 Index, uint8
 
     OnMoneyChanged_OnClient(Money);
 
-    ActiveShop->BuyItem(Index);
+    ActiveShop->BuyItemInStore(Index);
 }
 
 void UInventoryComponent::OnStuffEquiped_OnClient_Implementation(const TArray<FSlot>& Slots, ESlotLocationType Type)
@@ -526,7 +539,7 @@ void UInventoryComponent::OnEquipmentSlotDataChanged_OnClient_Implementation(con
     OnEquipmentSlotDataChanged.Broadcast(Item, Type);
 }
 
-void UInventoryComponent::SetStaticMesh_Multicast_Implementation(AAwesomeEquipmentActor* Actor, UStaticMesh* NewMesh)
+void UInventoryComponent::SetStaticMesh_Multicast_Implementation(AEquipmentActor* Actor, UStaticMesh* NewMesh)
 {
 
     if (!Actor || !NewMesh) return;

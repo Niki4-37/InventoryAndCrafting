@@ -10,7 +10,7 @@
 class UBorder;
 class UTextBlock;
 class UInventoryComponent;
-class AAwesomeBackpackMaster;
+class ABackpackMaster;
 
 USTRUCT()
 struct FCraftingSet
@@ -62,5 +62,5 @@ private:
     bool CheckForCraftingComponents(UInventoryComponent* Inventory);
     void CraftTheItem();
 
-    void SpendComponents(AAwesomeBackpackMaster* Backpack);
+    void SpendComponents(ABackpackMaster* Backpack);
 };

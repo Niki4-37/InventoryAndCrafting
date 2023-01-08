@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AwesomeTypes.h"
-#include "Interfaces/AwesomeInteractionInterface.h"
+#include "Interfaces/InteractionInterface.h"
 #include "AwesomeBaseCharacter.generated.h"
 
 class UCameraComponent;
@@ -13,7 +13,7 @@ class USpringArmComponent;
 class UInventoryComponent;
 
 UCLASS()
-class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter, public IAwesomeInteractionInterface
+class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter, public IInteractionInterface
 {
     GENERATED_BODY()
 

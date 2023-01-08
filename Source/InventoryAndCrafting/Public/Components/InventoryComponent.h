@@ -7,9 +7,9 @@
 #include "AwesomeTypes.h"
 #include "InventoryComponent.generated.h"
 
-class AAwesomeBackpackMaster;
-class AAwesomePickupMaster;
-class AAwesomeShop;
+class ABackpackMaster;
+class APickupMaster;
+class AShopCharacter;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class INVENTORYANDCRAFTING_API UInventoryComponent : public UActorComponent
@@ -27,18 +27,18 @@ public:
     FOnMoneyValueChangedSignature OnMoneyValueChanged;
 
     UFUNCTION(Server, Reliable)
-    void EquipBackpack_OnServer(AAwesomeBackpackMaster* Backpack);
+    void EquipBackpack_OnServer(ABackpackMaster* Backpack);
 
     UFUNCTION(Server, Unreliable)
-    void StartTrading_OnServer(AAwesomeShop* Shop);
+    void StartTrading_OnServer(AShopCharacter* Shop);
 
     UFUNCTION(Server, Reliable)
     void StopTrading_OnServer();
 
-    AAwesomeBackpackMaster* GetBackpack() const { return EquipedBackpack; };
+    ABackpackMaster* GetBackpack() const { return EquipedBackpack; };
 
     UFUNCTION(Server, Reliable)
-    void PickupItem_OnServer(AAwesomePickupMaster* Pickup);
+    void PickupItem_OnServer(APickupMaster* Pickup);
 
     UFUNCTION(Server, Reliable)
     void MoveItem_OnServer(const FSlot& Item,                   //
@@ -66,7 +66,7 @@ protected:
     int32 Money;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<AAwesomePickupMaster> PickupMasterClass;
+    TSubclassOf<APickupMaster> PickupMasterClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     FName BackpackSocketName;
@@ -84,10 +84,10 @@ private:
     TArray<FEquipmentSlot> EquipmentSlots;
 
     UPROPERTY(Replicated)
-    AAwesomeBackpackMaster* EquipedBackpack{nullptr};
+    ABackpackMaster* EquipedBackpack{nullptr};
 
     UPROPERTY(Replicated)
-    AAwesomeShop* ActiveShop{nullptr};
+    AShopCharacter* ActiveShop{nullptr};
 
     UPROPERTY()
     TMap<EEquipmentType, AActor*> EquippedItemsMap;
@@ -126,7 +126,7 @@ private:
     void OnEquipmentSlotDataChanged_OnClient(const FSlot& Item, EEquipmentType Type);
 
     UFUNCTION(NetMulticast, Reliable)
-    void SetStaticMesh_Multicast(AAwesomeEquipmentActor* Actor, UStaticMesh* NewMesh);
+    void SetStaticMesh_Multicast(AEquipmentActor* Actor, UStaticMesh* NewMesh);
 
     UFUNCTION(Client, unreliable)
     void OnTrading_OnClient(bool Enabled);

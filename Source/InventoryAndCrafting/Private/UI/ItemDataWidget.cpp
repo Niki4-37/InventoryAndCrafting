@@ -62,7 +62,7 @@ bool UItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropE
     auto DragDropOperation = Cast<UDragDropItemOperation>(InOperation);
     if (!DragDropOperation) return true;
 
-    if (DragDropOperation->GetItemFromLocationType() == ESlotLocationType::ShopSlots)
+    if (DragDropOperation->GetItemFromLocationType() == ESlotLocationType::ShopSlots || LocationType == ESlotLocationType::ShopSlots)
     {
         auto ConfirmWidget = CreateWidget<UConfirmWidget>(GetOwningPlayer(), ConfirmWidgetClass);
         if (ConfirmWidget)

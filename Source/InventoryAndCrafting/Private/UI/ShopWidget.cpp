@@ -7,7 +7,6 @@
 #include "Components/Button.h"
 #include "Components/InventoryComponent.h"
 #include "UI/DragDropItemOperation.h"
-#include "UI/ConfirmWidget.h"
 
 void UShopWidget::NativeOnInitialized()
 {
@@ -23,30 +22,6 @@ void UShopWidget::NativeOnInitialized()
     {
         CloseShopButton->OnClicked.AddDynamic(this, &UShopWidget::OnCloseShop);
     }
-}
-
-bool UShopWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
-{
-    auto DragDropOperation = Cast<UDragDropItemOperation>(InOperation);
-    if (!DragDropOperation) return true;
-
-    const auto InventoryComponent = GetOwningPlayerPawn()->FindComponentByClass<UInventoryComponent>();
-    if (!InventoryComponent) return true;
-
-    auto ConfirmWidget = CreateWidget<UConfirmWidget>(GetOwningPlayer(), ConfirmWidgetClass);
-    if (ConfirmWidget)
-    {
-        ConfirmWidget->SetSlotData(DragDropOperation->GetSlotData());
-        ConfirmWidget->SetDraDropData(FDragDropData(DragDropOperation->GetItemFromLocationType(),  //
-                                                    DragDropOperation->GetFromEquipmentType(),     //
-                                                    DragDropOperation->GetFromSlotIndex(),         //
-                                                    ESlotLocationType::ShopSlots,                  //
-                                                    EEquipmentType::NotEquipment,                  //
-                                                    0));
-        ConfirmWidget->AddToViewport();
-    }
-
-    return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
 void UShopWidget::OnNewPawn(APawn* NewPawn)

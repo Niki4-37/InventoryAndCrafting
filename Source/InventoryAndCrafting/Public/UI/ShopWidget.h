@@ -20,8 +20,6 @@ class INVENTORYANDCRAFTING_API UShopWidget : public UUserWidget
 public:
     virtual void NativeOnInitialized() override;
 
-    virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
-
 protected:
     UPROPERTY(meta = (BindWidget))
     UUniformGridPanel* ShopItemSlots;

@@ -24,5 +24,5 @@ protected:
     UHorizontalBox* CraftingRecipeBox;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<UUserWidget> CraftableItemWidgetClass;
+    TSubclassOf<UUserWidget> ItemDataWidgetClass;
 };

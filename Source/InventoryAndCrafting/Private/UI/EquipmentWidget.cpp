@@ -54,7 +54,7 @@ void UEquipmentWidget::InitEquipmentSlot(USizeBox* Box, UItemDataWidget* ItemWid
 
     if (DefaultEqiupmentIconsMap.Contains(Type))
     {
-        ItemWidget->SetIconToWidget(DefaultEqiupmentIconsMap.FindRef(Type));
+        ItemWidget->SetDisplayingInfo(DefaultEqiupmentIconsMap.FindRef(Type));
     }
     Box->AddChild(ItemWidget);
     EqiupmentSlotsMap.Add(Type, ItemWidget);
@@ -82,7 +82,7 @@ void UEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEqu
     SlotWidget->SetDataSlot(NewSlotData);
     if (!NewSlotData.Amount && DefaultEqiupmentIconsMap.Contains(Type))
     {
-        SlotWidget->SetIconToWidget(DefaultEqiupmentIconsMap.FindRef(Type));
+        SlotWidget->SetDisplayingInfo(DefaultEqiupmentIconsMap.FindRef(Type));
     }
 }
 

@@ -25,6 +25,8 @@ public:
     FOnEquipmentSlotDataChangedSignature OnEquipmentSlotDataChanged;
     FOnTradingSignature OnTrading;
     FOnMoneyValueChangedSignature OnMoneyValueChanged;
+    FOnQuickSlotsCreatedSignature OnQuickSlotsCreated;
+    FOnQuickSlotsDataChangedSignature OnQuickSlotsDataChanged;
 
     UFUNCTION(Server, Reliable)
     void EquipBackpack_OnServer(ABackpackMaster* Backpack);
@@ -58,6 +60,10 @@ public:
 
     bool DropItem(const FSlot& Item);
 
+    UFUNCTION(Client, unreliable)
+    void RemoveFromQuickSlots_OnClient(ESlotLocationType Type, uint8 Index, bool bIsSingle);
+    void AddToQuickSlotsAtIndex(const FQuickSlot& Data, uint8 InIndex);
+
 protected:
     UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (Clampmin = "0", Clampmax = "20"))
     uint8 PersonalSlotsNumber{4};
@@ -77,6 +83,8 @@ protected:
     virtual void BeginPlay() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    virtual void OnComponentCreated() override;
+
 private:
     UPROPERTY(Replicated)
     TArray<FSlot> PersonalSlots;
@@ -91,6 +99,9 @@ private:
 
     UPROPERTY()
     TMap<EEquipmentType, AActor*> EquippedItemsMap;
+
+    uint8 QuickSlotsNumber{8};
+    TArray<FQuickSlot> QuickSlots;
 
     UFUNCTION(Server, Reliable)
     void InitEnableSlots_OnServer();

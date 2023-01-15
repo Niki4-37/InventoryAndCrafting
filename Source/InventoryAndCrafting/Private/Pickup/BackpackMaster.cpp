@@ -151,4 +151,8 @@ void ABackpackMaster::UpdateOwnerWidget(const FSlot& Item, const uint8 Index)
     if (!InventoryComponent) return;
 
     InventoryComponent->UpdateWidgetSlotData(Item, Index, ESlotLocationType::Inventory);
+    if (!Item.Amount)
+    {
+        InventoryComponent->RemoveFromQuickSlots_OnClient(ESlotLocationType::Inventory, Index, true);
+    }
 }

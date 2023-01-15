@@ -20,6 +20,8 @@ class INVENTORYANDCRAFTING_API UPlayerHUDWidget : public UUserWidget
 
 public:
     virtual void NativeOnInitialized() override;
+    void ShowInventory(bool bEnabled);
+    bool GetInventoryVisibility() const { return bIsVisible; };
 
 protected:
     UPROPERTY(meta = (BindWidget))
@@ -37,7 +39,7 @@ protected:
     TSubclassOf<UUserWidget> DropBoxWidgetClass;
 
     UPROPERTY(meta = (BindWidget))
-    UBorder* InventoriPosition;
+    UBorder* InventoryPosition;
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UUserWidget> InventoriWidgetClass;
 
@@ -50,6 +52,11 @@ protected:
     UBorder* PersonalSlotsPosition;
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UUserWidget> PersonalSlotsWidgetClass;
+
+    UPROPERTY(meta = (BindWidget))
+    UBorder* QuickSlotsPosition;
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UUserWidget> QuickSlotsWidgetClass;
 
     UPROPERTY(meta = (BindWidget))
     UBorder* CraftingDeckPosition;
@@ -68,6 +75,8 @@ protected:
     UButton* BackButton;
 
 private:
+    bool bIsVisible;
+
     void OnNewPawn(APawn* NewPawn);
     void InitWidget();
     UFUNCTION()

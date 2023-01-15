@@ -9,6 +9,7 @@
 
 class UBorder;
 class UTexture2D;
+class UTextBlock;
 /**
  *
  */
@@ -21,8 +22,9 @@ public:
     virtual void NativeOnInitialized() override;
 
     void SetDataSlot(const FSlot& InSlotData);
-    void SetIconToWidget(UTexture2D* NewIcon);
+    void SetDisplayingInfo(UTexture2D* NewIcon, int32 InAmount = 0);
 
+    /* used in tooltip widget */
     UFUNCTION(BlueprintCallable)
     FSlot GetSlotData() const { return SlotData; };
 
@@ -32,11 +34,14 @@ public:
 
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
-    virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
+    virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
 protected:
     UPROPERTY(meta = (BindWidget))
     UBorder* WidgetBorder;
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* AmountText;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UTexture2D* EmptyIcon;

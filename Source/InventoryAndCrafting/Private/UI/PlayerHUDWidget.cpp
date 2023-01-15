@@ -11,6 +11,7 @@
 #include "UI/EquipmentWidget.h"
 #include "UI/InventoryWidget.h"
 #include "UI/PersonalSlotsWidget.h"
+#include "UI/QuickSlotsWidget.h"
 #include "UI/ShopWidget.h"
 
 void UPlayerHUDWidget::NativeOnInitialized()
@@ -38,6 +39,27 @@ void UPlayerHUDWidget::NativeOnInitialized()
     InitWidget();
 }
 
+void UPlayerHUDWidget::ShowInventory(bool bEnabled)
+{
+    bIsVisible = bEnabled;
+    if (bEnabled)
+    {
+        SwitchToCraftingButton->SetVisibility(ESlateVisibility::Visible);
+        DropBoxPosition->SetVisibility(ESlateVisibility::Visible);
+        InventoryPosition->SetVisibility(ESlateVisibility::Visible);
+        EquipmentPosition->SetVisibility(ESlateVisibility::Visible);
+        PersonalSlotsPosition->SetVisibility(ESlateVisibility::Visible);
+    }
+    else
+    {
+        SwitchToCraftingButton->SetVisibility(ESlateVisibility::Collapsed);
+        DropBoxPosition->SetVisibility(ESlateVisibility::Collapsed);
+        InventoryPosition->SetVisibility(ESlateVisibility::Collapsed);
+        EquipmentPosition->SetVisibility(ESlateVisibility::Collapsed);
+        PersonalSlotsPosition->SetVisibility(ESlateVisibility::Collapsed);
+    }
+}
+
 void UPlayerHUDWidget::OnNewPawn(APawn* NewPawn)
 {
     if (!NewPawn) return;
@@ -59,12 +81,12 @@ void UPlayerHUDWidget::InitWidget()
             DropBoxPosition->AddChild(WidgetToAdd);
         }
     }
-    if (InventoriPosition)
+    if (InventoryPosition)
     {
         const auto WidgetToAdd = CreateWidget<UInventoryWidget>(GetOwningPlayer(), InventoriWidgetClass);
         if (WidgetToAdd)
         {
-            InventoriPosition->AddChild(WidgetToAdd);
+            InventoryPosition->AddChild(WidgetToAdd);
         }
     }
     if (EquipmentPosition)
@@ -81,6 +103,14 @@ void UPlayerHUDWidget::InitWidget()
         if (WidgetToAdd)
         {
             PersonalSlotsPosition->AddChild(WidgetToAdd);
+        }
+    }
+    if (QuickSlotsPosition)
+    {
+        const auto WidgetToAdd = CreateWidget<UQuickSlotsWidget>(GetOwningPlayer(), QuickSlotsWidgetClass);
+        if (WidgetToAdd)
+        {
+            QuickSlotsPosition->AddChild(WidgetToAdd);
         }
     }
     if (CraftingDeckPosition)
@@ -128,6 +158,8 @@ void UPlayerHUDWidget::OnTrading(bool Enable)
     if (Enable)
     {
         ShopPosition->SetVisibility(ESlateVisibility::Visible);
+        ShowInventory(true);
+        DropBoxPosition->SetVisibility(ESlateVisibility::Collapsed);
         SetVisibility(ESlateVisibility::Visible);
         GetOwningPlayer()->SetInputMode(FInputModeGameAndUI());
         GetOwningPlayer()->bShowMouseCursor = true;
@@ -137,5 +169,9 @@ void UPlayerHUDWidget::OnTrading(bool Enable)
     else
     {
         ShopPosition->SetVisibility(ESlateVisibility::Hidden);
+        if (bIsVisible)
+        {
+            DropBoxPosition->SetVisibility(ESlateVisibility::Visible);
+        }
     }
 }

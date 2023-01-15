@@ -2,16 +2,17 @@
 
 #include "UI/ItemDataWidget.h"
 #include "Components/Border.h"
+#include "Components/TextBlock.h"
+#include "Components/InventoryComponent.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UI/DragDropItemOperation.h"
 #include "UI/ConfirmWidget.h"
-#include "Components/InventoryComponent.h"
 
 void UItemDataWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    SetIconToWidget(nullptr);
+    SetDisplayingInfo(nullptr, 0);
 }
 
 void UItemDataWidget::SetDataSlot(const FSlot& InSlotData)
@@ -19,13 +20,13 @@ void UItemDataWidget::SetDataSlot(const FSlot& InSlotData)
     SlotData = InSlotData;
     if (!SlotData.Amount)
     {
-        SetIconToWidget(nullptr);
+        SetDisplayingInfo(nullptr, 0);
         return;
     }
     const auto PickupDataPointer = SlotData.DataTableRowHandle.GetRow<FItemData>("");
     if (!PickupDataPointer) return;
     ItemData = *PickupDataPointer;
-    SetIconToWidget(ItemData.Icon);
+    SetDisplayingInfo(ItemData.Icon, SlotData.Amount);
 }
 
 FReply UItemDataWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -93,9 +94,16 @@ bool UItemDataWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropE
     return OnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
-void UItemDataWidget::SetIconToWidget(UTexture2D* NewIcon)
+void UItemDataWidget::SetDisplayingInfo(UTexture2D* NewIcon, int32 InAmount)
 {
-    if (!WidgetBorder || !EmptyIcon) return;
+    if (WidgetBorder && EmptyIcon)
+    {
+        NewIcon ? WidgetBorder->SetBrushFromTexture(NewIcon) : WidgetBorder->SetBrushFromTexture(EmptyIcon);
+    }
 
-    NewIcon ? WidgetBorder->SetBrushFromTexture(NewIcon) : WidgetBorder->SetBrushFromTexture(EmptyIcon);
+    if (AmountText)
+    {
+        AmountText->SetText(FText::AsNumber(InAmount));
+        InAmount > 0 ? AmountText->SetVisibility(ESlateVisibility::Visible) : AmountText->SetVisibility(ESlateVisibility::Hidden);
+    }
 }

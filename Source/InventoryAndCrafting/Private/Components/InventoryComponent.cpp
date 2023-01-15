@@ -16,17 +16,6 @@ UInventoryComponent::UInventoryComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
     SetIsReplicatedByDefault(true);
-
-    for (EEquipmentType EquipmentType = EEquipmentType::Begin; EquipmentType != EEquipmentType::End; ++EquipmentType)
-    {
-        FString EnumNameString(UEnum::GetValueAsName(EquipmentType).ToString());
-        int32 ScopeIndex = EnumNameString.Find(TEXT("::"), ESearchCase::CaseSensitive);
-        if (ScopeIndex != INDEX_NONE)
-        {
-            FName SocketName = FName(*(EnumNameString.Mid(ScopeIndex + 2) + "Socket"));
-            EquipmentSocketNamesMap.Add(EquipmentType, SocketName);
-        }
-    }
 }
 
 void UInventoryComponent::EquipBackpack_OnServer_Implementation(ABackpackMaster* Backpack)
@@ -36,6 +25,7 @@ void UInventoryComponent::EquipBackpack_OnServer_Implementation(ABackpackMaster*
 
     if (EquipedBackpack)
     {
+        RemoveFromQuickSlots_OnClient(ESlotLocationType::Inventory, 0, false);
         FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, false);
         EquipedBackpack->DetachFromActor(DetachmentRules);
         EquipedBackpack->GetStaticMeshComponent()->SetSimulatePhysics(true);
@@ -95,7 +85,7 @@ void UInventoryComponent::MoveItem_OnServer_Implementation(const FSlot& Item,   
         }
         case (ESlotLocationType::PersonalSlots): bMoveSuccess = TryAddItemToPersonalSlotsByIndex(Item, ToSlotIndex); break;
         case (ESlotLocationType::Equipment): bMoveSuccess = TryAddItemToEquipment(Item, ToEquipmentType); break;
-        case (ESlotLocationType::Environment): bMoveSuccess = DropItem(Item); break;
+        case (ESlotLocationType::Default): bMoveSuccess = DropItem(Item); break;
         case (ESlotLocationType::ShopSlots): bMoveSuccess = TrySellItem(Item); break;
 
         default: bMoveSuccess = false;
@@ -113,7 +103,7 @@ void UInventoryComponent::MoveItem_OnServer_Implementation(const FSlot& Item,   
         }
         case (ESlotLocationType::PersonalSlots): RemoveAmountFromChoosenSlotsAtIndex(PersonalSlots, FromSlotIndex, Item.Amount); break;
         case (ESlotLocationType::Equipment): RemoveItemFromEquipment(FromEquipmentType); break;
-        case (ESlotLocationType::ShopSlots): TryBuyItem(Item, FromSlotIndex, ToSlotIndex, ToLocationType, ToEquipmentType);
+        case (ESlotLocationType::ShopSlots): TryBuyItem(Item, FromSlotIndex, ToSlotIndex, ToLocationType, ToEquipmentType); break;
     }
 }
 
@@ -165,6 +155,37 @@ bool UInventoryComponent::DropItem(const FSlot& Item)
     return false;
 }
 
+void UInventoryComponent::RemoveFromQuickSlots_OnClient_Implementation(ESlotLocationType Type, uint8 Index, bool bIsSingle)
+{
+    if (bIsSingle)
+    {
+        int32 FoundIndex{-1};
+        if (QuickSlots.Find(FQuickSlot(Type, Index), FoundIndex))
+        {
+            QuickSlots[FoundIndex] = FQuickSlot();
+            OnQuickSlotsDataChanged.Broadcast(QuickSlots[FoundIndex], FoundIndex);
+        }
+    }
+    else
+    {
+        for (uint8 LocalIndex = 0; LocalIndex < QuickSlotsNumber; ++LocalIndex)
+        {
+            if (QuickSlots[LocalIndex].FromSlotType != Type) continue;
+            QuickSlots[LocalIndex] = FQuickSlot();
+            OnQuickSlotsDataChanged.Broadcast(QuickSlots[LocalIndex], LocalIndex);
+        }
+    }
+}
+
+void UInventoryComponent::AddToQuickSlotsAtIndex(const FQuickSlot& Data, uint8 InIndex)
+{
+    if (QuickSlots.IsValidIndex(InIndex))
+    {
+        QuickSlots[InIndex] = Data;
+        OnQuickSlotsDataChanged.Broadcast(QuickSlots[InIndex], InIndex);
+    }
+}
+
 void UInventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
@@ -174,6 +195,13 @@ void UInventoryComponent::BeginPlay()
         Money = 100;
         InitEnableSlots_OnServer();
     }
+
+    QuickSlots.Reserve(QuickSlotsNumber);
+    for (uint8 Index = 0; Index < QuickSlotsNumber; ++Index)
+    {
+        QuickSlots.Add(FQuickSlot(ESlotLocationType::Default, 0));
+    }
+    OnQuickSlotsCreated.Broadcast(QuickSlots);
     OnMoneyChanged_OnClient(Money);
     OnStuffEquiped.Broadcast(PersonalSlots, ESlotLocationType::PersonalSlots);
 }
@@ -190,8 +218,24 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
     DOREPLIFETIME(UInventoryComponent, ActiveShop);
 }
 
+void UInventoryComponent::OnComponentCreated()
+{
+    Super::OnComponentCreated();
+    for (EEquipmentType EquipmentType = EEquipmentType::Begin; EquipmentType != EEquipmentType::End; ++EquipmentType)
+    {
+        FString EnumNameString(UEnum::GetValueAsName(EquipmentType).ToString());
+        int32 ScopeIndex = EnumNameString.Find(TEXT("::"), ESearchCase::CaseSensitive);
+        if (ScopeIndex != INDEX_NONE)
+        {
+            FName SocketName = FName(*(EnumNameString.Mid(ScopeIndex + 2) + "Socket"));
+            EquipmentSocketNamesMap.Add(EquipmentType, SocketName);
+        }
+    }
+}
+
 void UInventoryComponent::InitEnableSlots_OnServer_Implementation()
 {
+    PersonalSlots.Reserve(PersonalSlotsNumber);
     for (uint8 Index = 0; Index < PersonalSlotsNumber; ++Index)
     {
         PersonalSlots.Add(FSlot());
@@ -272,33 +316,6 @@ bool UInventoryComponent::TryAddItemToSlots(const FSlot& Item)
     }
 
     return false;
-
-    // if (FindStackOfSameItems(Item, FoundSlotIndex, FoundAmount, bCanStack))
-    //{
-    //     if (bCanStack)
-    //     {
-    //         return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, Item.Amount);
-    //     }
-
-    //    if (!bCanStack && FindEmptySlot(FoundSlotIndex))
-    //    {
-    //        PersonalSlots[FoundSlotIndex] = Item;
-    //        return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, 0);
-    //    }
-    //    else
-    //    {
-    //        return false;
-    //    }
-    //}
-    // else
-    //{
-    //    if (FindEmptySlot(FoundSlotIndex))
-    //    {
-    //        PersonalSlots[FoundSlotIndex] = Item;
-    //        return UpdateSlotItemData(PersonalSlots, FoundSlotIndex, 0);
-    //    }
-    //    return false;
-    //}
 }
 
 bool UInventoryComponent::TryAddItemToPersonalSlotsByIndex(const FSlot& Item, const uint8 InIndex)
@@ -462,6 +479,7 @@ bool UInventoryComponent::UpdateSlotItemData(TArray<FSlot>& Slots, const uint8 I
     if (!Slots[Index].Amount)
     {
         Slots[Index] = FSlot();
+        RemoveFromQuickSlots_OnClient(ESlotLocationType::PersonalSlots, Index, true);
     }
 
     OnSlotChanged_OnClient(Slots[Index], Index, ESlotLocationType::PersonalSlots);

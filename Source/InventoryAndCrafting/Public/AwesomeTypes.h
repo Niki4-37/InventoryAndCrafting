@@ -10,7 +10,7 @@ class UStaticMesh;
 UENUM(BlueprintType)
 enum class ESlotLocationType : uint8
 {
-    Environment,
+    Default,
     Equipment,
     Inventory,
     PersonalSlots,
@@ -125,6 +125,8 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStuffEquipedSignature, const TArray<FSlo
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnEquipmentSlotDataChangedSignature, const FSlot&, EEquipmentType);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTradingSignature, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoneyValueChangedSignature, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotsCreatedSignature, const TArray<FQuickSlot>&);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnQuickSlotsDataChangedSignature, const FQuickSlot&, uint8);
 
 USTRUCT()
 struct FEquipmentSlot
@@ -172,10 +174,10 @@ struct FDragDropData
 
     FDragDropData()
     {
-        FromLocationType = ESlotLocationType::Environment;
+        FromLocationType = ESlotLocationType::Default;
         FromEquipmentType = EEquipmentType::NotEquipment;
         FromSlotIndex = 0;
-        ToLocationType = ESlotLocationType::Environment;
+        ToLocationType = ESlotLocationType::Default;
         ToEquipmentType = EEquipmentType::NotEquipment;
         ToSlotIndex = 0;
     }
@@ -186,29 +188,29 @@ struct FDragDropData
     , ESlotLocationType InToLocationType //
     , EEquipmentType InToEquipmentType //
     , uint8 InToSlotIndex)
-    : FromLocationType(InFromLocationType)//
-    , FromEquipmentType(InFromEquipmentType)//
-    , FromSlotIndex(InFromSlotIndex)//
-    , ToLocationType(InToLocationType)//
-    , ToEquipmentType(InToEquipmentType)//
+    : FromLocationType(InFromLocationType) //
+    , FromEquipmentType(InFromEquipmentType) //
+    , FromSlotIndex(InFromSlotIndex) //
+    , ToLocationType(InToLocationType) //
+    , ToEquipmentType(InToEquipmentType) //
     , ToSlotIndex(InToSlotIndex)
     { }   
 
     FDragDropData(FDragDropData&& Data)
-    : FromLocationType(Data.FromLocationType)//
-    , FromEquipmentType(Data.FromEquipmentType)//
-    , FromSlotIndex(Data.FromSlotIndex)//
-    , ToLocationType(Data.ToLocationType)//
-    , ToEquipmentType(Data.ToEquipmentType)//
+    : FromLocationType(Data.FromLocationType) //
+    , FromEquipmentType(Data.FromEquipmentType) //
+    , FromSlotIndex(Data.FromSlotIndex) //
+    , ToLocationType(Data.ToLocationType) //
+    , ToEquipmentType(Data.ToEquipmentType) //
     , ToSlotIndex(Data.ToSlotIndex)
     { }   
 
     FDragDropData(const FDragDropData& Data)
-    : FromLocationType(Data.FromLocationType)//
-    , FromEquipmentType(Data.FromEquipmentType)//
-    , FromSlotIndex(Data.FromSlotIndex)//
-    , ToLocationType(Data.ToLocationType)//
-    , ToEquipmentType(Data.ToEquipmentType)//
+    : FromLocationType(Data.FromLocationType) //
+    , FromEquipmentType(Data.FromEquipmentType) //
+    , FromSlotIndex(Data.FromSlotIndex) //
+    , ToLocationType(Data.ToLocationType) //
+    , ToEquipmentType(Data.ToEquipmentType) //
     , ToSlotIndex(Data.ToSlotIndex)
     { }
 
@@ -222,5 +224,29 @@ struct FDragDropData
         ToSlotIndex = Data.ToSlotIndex;
 
         return *this;
+    }
+};
+
+USTRUCT()
+struct FQuickSlot
+{
+    GENERATED_USTRUCT_BODY()
+
+    ESlotLocationType FromSlotType;
+    uint8 FromSlotIndex;
+
+    FQuickSlot()
+    {
+        FromSlotType = ESlotLocationType::Default;
+        FromSlotIndex = 0;
+    }
+    FQuickSlot(ESlotLocationType InType, uint8 InIndex)
+    : FromSlotType(InType)
+    , FromSlotIndex(InIndex)
+    { }
+
+    bool operator==(const FQuickSlot& Slot) const
+    {
+         return FromSlotType == Slot.FromSlotType && FromSlotIndex == Slot.FromSlotIndex;
     }
 };

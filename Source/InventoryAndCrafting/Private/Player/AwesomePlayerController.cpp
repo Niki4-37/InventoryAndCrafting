@@ -16,7 +16,7 @@ void AAwesomePlayerController::BeginPlay()
         if (HUDWidget)
         {
             HUDWidget->AddToViewport();
-            HUDWidget->SetVisibility(ESlateVisibility::Hidden);
+            HUDWidget->ShowInventory(false);
         }
     }
 }
@@ -37,7 +37,7 @@ void AAwesomePlayerController::OnPossess(APawn* aPawn)
 void AAwesomePlayerController::OpenInventory()
 {
     if (!IsLocalPlayerController() || !HUDWidget) return;
-    HUDWidget->SetVisibility(ESlateVisibility::Visible);
+    HUDWidget->ShowInventory(true);
     SetInputMode(FInputModeGameAndUI());
     bShowMouseCursor = true;
 
@@ -47,7 +47,7 @@ void AAwesomePlayerController::OpenInventory()
 void AAwesomePlayerController::CloseInventory()
 {
     if (!IsLocalPlayerController() || !HUDWidget) return;
-    HUDWidget->SetVisibility(ESlateVisibility::Hidden);
+    HUDWidget->ShowInventory(false);
     SetInputMode(FInputModeGameOnly());
     bShowMouseCursor = false;
 
@@ -62,9 +62,9 @@ void AAwesomePlayerController::CloseInventory()
 
 void AAwesomePlayerController::OpenCloseInventory()
 {
-    switch (HUDWidget->GetVisibility())
-    {
-        case (ESlateVisibility::Hidden): OpenInventory(); break;
-        case (ESlateVisibility::Visible): CloseInventory(); break;
-    }
+    HUDWidget->GetInventoryVisibility()  //
+        ?
+        CloseInventory()  //
+        :
+        OpenInventory();
 }

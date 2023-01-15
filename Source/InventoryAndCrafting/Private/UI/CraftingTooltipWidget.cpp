@@ -2,7 +2,7 @@
 
 #include "UI/CraftingTooltipWidget.h"
 #include "Components/HorizontalBox.h"
-#include "UI/CraftableItemWidget.h"
+#include "UI/ItemDataWidget.h"
 
 void UCraftingTooltipWidget::InitWidget(const TArray<FSlot> InRecipe)
 {
@@ -14,9 +14,9 @@ void UCraftingTooltipWidget::InitWidget(const TArray<FSlot> InRecipe)
             if (!ItemDataPointer) continue;
             const auto ItemData = *ItemDataPointer;
 
-            auto CraftableComponentWidget = CreateWidget<UCraftableItemWidget>(GetOwningPlayer(), CraftableItemWidgetClass);
+            auto CraftableComponentWidget = CreateWidget<UItemDataWidget>(GetOwningPlayer(), ItemDataWidgetClass);
             if (!CraftableComponentWidget) continue;
-            CraftableComponentWidget->InitWidget(ItemData.Icon, CraftingComponent.Amount, NAME_None, {});
+            CraftableComponentWidget->SetDataSlot(CraftingComponent);
             CraftingRecipeBox->AddChild(CraftableComponentWidget);
         }
     }

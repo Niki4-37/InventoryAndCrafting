@@ -16,7 +16,7 @@ bool UDropBoxWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEv
                                           DragDropOperation->GetItemFromLocationType(),  //
                                           DragDropOperation->GetFromEquipmentType(),     //
                                           DragDropOperation->GetFromSlotIndex(),         //
-                                          ESlotLocationType::Environment,                //
+                                          ESlotLocationType::Default,                    //
                                           EEquipmentType::NotEquipment,                  //
                                           0);
 

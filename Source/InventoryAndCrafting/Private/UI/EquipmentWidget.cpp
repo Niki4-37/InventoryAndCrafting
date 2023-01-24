@@ -2,6 +2,7 @@
 
 #include "UI/EquipmentWidget.h"
 #include "UI/ItemDataWidget.h"
+#include "UI/PreviewPlayer.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
@@ -73,9 +74,30 @@ void UEquipmentWidget::OnNewPawn(APawn* NewPawn)
     {
         InventoryComponent->OnMoneyValueChanged.AddUObject(this, &UEquipmentWidget::OnMoneyValueChanged);
     }
+
+    if (PreviewPlayer)
+    {
+        PreviewPlayer->Destroy();
+    }
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    SpawnParams.Owner = NewPawn;
+    PreviewPlayer = GetWorld()->SpawnActor<APreviewPlayer>(PreviewPlayerClass, PreviewPlayerSpawnLocation, FRotator::ZeroRotator, SpawnParams);
+    if (PreviewPlayer)
+    {
+        const auto SkeletalMeshComponent = NewPawn->FindComponentByClass<USkeletalMeshComponent>();
+        if (SkeletalMeshComponent && SkeletalMeshComponent->SkeletalMesh && SkeletalMeshComponent->GetAnimClass())
+        {
+            const auto Mesh = SkeletalMeshComponent->SkeletalMesh;
+            const auto AnimClass = SkeletalMeshComponent->GetAnimClass();
+            PreviewPlayer->SetSkeletalMeshAndAnimation(Mesh, AnimClass);
+        }
+        PreviewPlayer->CreateComponents();
+        RenderTargetMaterial = PreviewPlayer->CreateDynamicMaterialInstance();
+    }
 }
 
-void UEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type)
+void UEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type, UStaticMesh* NewMesh)
 {
     auto SlotWidget = EqiupmentSlotsMap.FindChecked(Type);
     if (!SlotWidget) return;
@@ -83,6 +105,10 @@ void UEquipmentWidget::OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEqu
     if (!NewSlotData.Amount && DefaultEqiupmentIconsMap.Contains(Type))
     {
         SlotWidget->SetDisplayingInfo(DefaultEqiupmentIconsMap.FindRef(Type));
+    }
+    if (PreviewPlayer)
+    {
+        PreviewPlayer->SetEquipmentMesh(Type, NewMesh);
     }
 }
 

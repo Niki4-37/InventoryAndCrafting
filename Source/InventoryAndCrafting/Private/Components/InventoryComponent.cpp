@@ -376,7 +376,7 @@ bool UInventoryComponent::TryAddItemToEquipment(const FSlot& Item, EEquipmentTyp
         OnStuffEquiped_OnClient(PersonalSlots, ESlotLocationType::PersonalSlots);
     }
 
-    OnEquipmentSlotDataChanged_OnClient(Item, ItemEquipmentType);
+    OnEquipmentSlotDataChanged_OnClient(Item, ItemEquipmentType, ItemData.Mesh);
     const auto SocketName = EquipmentSocketNamesMap.FindRef(ItemEquipmentType);
     EquipItem(ItemData.ActorClass, ItemData.Mesh, SocketName, ItemEquipmentType);
 
@@ -447,7 +447,8 @@ FSlot UInventoryComponent::RemoveItemFromEquipment(EEquipmentType FromEquipmentT
         RemovePersonalExtraSlots(*FoundRow);
     }
 
-    OnEquipmentSlotDataChanged_OnClient(FSlot(), FromEquipmentType);
+    UStaticMesh* NewMesh = NewObject<UStaticMesh>();
+    OnEquipmentSlotDataChanged_OnClient(FSlot(), FromEquipmentType, NewMesh);
     if (auto EquippedItem = EquippedItemsMap.FindAndRemoveChecked(FromEquipmentType))
     {
         EquippedItem->Destroy();
@@ -552,14 +553,13 @@ void UInventoryComponent::OnSlotChanged_OnClient_Implementation(const FSlot& Ite
     OnSlotChanged.Broadcast(Item, Index, Type);
 }
 
-void UInventoryComponent::OnEquipmentSlotDataChanged_OnClient_Implementation(const FSlot& Item, EEquipmentType Type)
+void UInventoryComponent::OnEquipmentSlotDataChanged_OnClient_Implementation(const FSlot& Item, EEquipmentType Type, UStaticMesh* NewMesh)
 {
-    OnEquipmentSlotDataChanged.Broadcast(Item, Type);
+    OnEquipmentSlotDataChanged.Broadcast(Item, Type, NewMesh);
 }
 
 void UInventoryComponent::SetStaticMesh_Multicast_Implementation(AEquipmentActor* Actor, UStaticMesh* NewMesh)
 {
-
     if (!Actor || !NewMesh) return;
     Actor->SetStaticMesh(NewMesh);
 }

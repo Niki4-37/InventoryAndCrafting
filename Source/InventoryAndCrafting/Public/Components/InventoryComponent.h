@@ -134,7 +134,7 @@ private:
     void OnSlotChanged_OnClient(const FSlot& Item, const uint8 Index, ESlotLocationType Type);
 
     UFUNCTION(Client, Reliable)
-    void OnEquipmentSlotDataChanged_OnClient(const FSlot& Item, EEquipmentType Type);
+    void OnEquipmentSlotDataChanged_OnClient(const FSlot& Item, EEquipmentType Type, UStaticMesh* NewMesh);
 
     UFUNCTION(NetMulticast, Reliable)
     void SetStaticMesh_Multicast(AEquipmentActor* Actor, UStaticMesh* NewMesh);

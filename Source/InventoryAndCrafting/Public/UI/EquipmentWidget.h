@@ -11,6 +11,7 @@ class UUniformGridPanel;
 class USizeBox;
 class UItemDataWidget;
 class UTextBlock;
+class APreviewPlayer;
 /**
  *
  */
@@ -21,6 +22,9 @@ class INVENTORYANDCRAFTING_API UEquipmentWidget : public UUserWidget
 
 public:
     virtual void NativeOnInitialized() override;
+
+    UFUNCTION(BlueprintCallable)
+    UMaterialInstanceDynamic* GetMaterialInstance() const { return RenderTargetMaterial; };
 
 protected:
     UPROPERTY(meta = (BindWidget))
@@ -45,14 +49,26 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TMap<EEquipmentType, UTexture2D*> DefaultEqiupmentIconsMap;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    TSubclassOf<AActor> PreviewPlayerClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FVector PreviewPlayerSpawnLocation;
+
 private:
     UPROPERTY()
     TMap<EEquipmentType, UItemDataWidget*> EqiupmentSlotsMap;
+
+    UPROPERTY()
+    UMaterialInstanceDynamic* RenderTargetMaterial;
+
+    UPROPERTY()
+    APreviewPlayer* PreviewPlayer;
 
     void InitEquipment();
     void InitEquipmentSlot(USizeBox* Box, UItemDataWidget* ItemWidget, EEquipmentType Type);
 
     void OnNewPawn(APawn* NewPawn);
-    void OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type);
+    void OnEquipmentSlotDataChanged(const FSlot& NewSlotData, EEquipmentType Type, UStaticMesh* NewMesh);
     void OnMoneyValueChanged(int32 Value);
 };

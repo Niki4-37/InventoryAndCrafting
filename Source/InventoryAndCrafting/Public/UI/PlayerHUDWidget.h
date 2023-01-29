@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "AwesomeTypes.h"
 #include "PlayerHUDWidget.generated.h"
 
 class UWidgetSwitcher;
 class UCanvasPanel;
 class UBorder;
 class UButton;
+class UProgressBar;
 /**
  *
  */
@@ -74,6 +76,15 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UButton* BackButton;
 
+    UPROPERTY(meta = (BindWidget))
+    UProgressBar* HealthBar;
+
+    UPROPERTY(meta = (BindWidget))
+    UProgressBar* ThirstBar;
+
+    UPROPERTY(meta = (BindWidget))
+    UProgressBar* HungerBar;
+
 private:
     bool bIsVisible;
 
@@ -84,4 +95,5 @@ private:
     UFUNCTION()
     void OnGoBack();
     void OnTrading(bool Enable);
+    void OnVitalParameterChanged(EVitalParameterType Type, float Persentage);
 };

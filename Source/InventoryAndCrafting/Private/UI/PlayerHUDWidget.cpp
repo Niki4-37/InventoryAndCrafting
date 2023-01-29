@@ -5,7 +5,9 @@
 #include "Components/CanvasPanel.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
+#include "Components/ProgressBar.h"
 #include "Components/InventoryComponent.h"
+#include "Components/VitalsComponent.h"
 #include "UI/CraftingDeckWidget.h"
 #include "UI/DropBoxWidget.h"
 #include "UI/EquipmentWidget.h"
@@ -64,10 +66,15 @@ void UPlayerHUDWidget::OnNewPawn(APawn* NewPawn)
 {
     if (!NewPawn) return;
     const auto InventoryComponent = NewPawn->FindComponentByClass<UInventoryComponent>();
-    if (!InventoryComponent) return;
-    if (!InventoryComponent->OnTrading.IsBoundToObject(this))
+    if (InventoryComponent && !InventoryComponent->OnTrading.IsBoundToObject(this))
     {
         InventoryComponent->OnTrading.AddUObject(this, &UPlayerHUDWidget::OnTrading);
+    }
+
+    const auto VitalsComponent = NewPawn->FindComponentByClass<UVitalsComponent>();
+    if (VitalsComponent && !VitalsComponent->OnVitalParameterChanged.IsBoundToObject(this))
+    {
+        VitalsComponent->OnVitalParameterChanged.AddUObject(this, &UPlayerHUDWidget::OnVitalParameterChanged);
     }
 }
 
@@ -174,4 +181,24 @@ void UPlayerHUDWidget::OnTrading(bool Enable)
             DropBoxPosition->SetVisibility(ESlateVisibility::Visible);
         }
     }
+}
+
+void UPlayerHUDWidget::OnVitalParameterChanged(EVitalParameterType Type, float Persentage)
+{
+    if (HealthBar && Type == EVitalParameterType::Health)
+    {
+        HealthBar->SetPercent(Persentage);
+    }
+
+    if (ThirstBar && Type == EVitalParameterType::Thirst)
+    {
+        ThirstBar->SetPercent(1.f - Persentage);
+    }
+
+    if (HungerBar && Type == EVitalParameterType::Hunger)
+    {
+        HungerBar->SetPercent(1.f - Persentage);
+    }
+
+    UE_LOG(LogTemp, Display, TEXT("Hunger"));
 }

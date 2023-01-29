@@ -4,15 +4,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Pickup/BackpackMaster.h"
-#include "Pickup/PickupMaster.h"
-#include "Player/AwesomePlayerController.h"
-#include "Equipment/EquipmentActor.h"
 #include "Net/UnrealNetwork.h"
-#include "AI/ShopCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Blueprint/UserWidget.h"
 #include "Components/InventoryComponent.h"
+#include "Components/VitalsComponent.h"
 #include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(AwesomeCharacter, All, All);
@@ -30,6 +25,8 @@ AAwesomeBaseCharacter::AAwesomeBaseCharacter()
     CameraComponent->SetupAttachment(SpringArmComponent);
 
     InventoryComponent = CreateDefaultSubobject<UInventoryComponent>("InventoryComponent");
+
+    VitalsComponent = CreateDefaultSubobject<UVitalsComponent>("VitalsComponent");
 }
 
 void AAwesomeBaseCharacter::BeginPlay()

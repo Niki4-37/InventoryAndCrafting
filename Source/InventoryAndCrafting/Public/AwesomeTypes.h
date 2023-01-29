@@ -34,6 +34,16 @@ enum class EEquipmentType : uint8
 };
 // clang-format on
 
+UENUM(BlueprintType)
+enum class EVitalParameterType : uint8
+{
+    Thirst,
+    Hunger,
+    Health,
+    MaxHealth,
+    NotVitalParameter
+};
+
 static EEquipmentType& operator++(EEquipmentType& EType)
 {
     EType = EEquipmentType(static_cast<std::underlying_type<EEquipmentType>::type>(EType) + 1);
@@ -89,6 +99,9 @@ struct FItemData : public FTableRowBase
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EEquipmentType EquipmnetType{EEquipmentType::NotEquipment};
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EVitalParameterType VitalParameter{EVitalParameterType::NotVitalParameter};
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     bool bCanIncreasePersonalSlots{false};
 
@@ -127,6 +140,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnTradingSignature, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoneyValueChangedSignature, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotsCreatedSignature, const TArray<FQuickSlot>&);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnQuickSlotsDataChangedSignature, const FQuickSlot&, uint8);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnVitalParameterChangedSignature, EVitalParameterType, float);
 
 USTRUCT()
 struct FEquipmentSlot

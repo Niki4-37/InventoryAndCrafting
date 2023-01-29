@@ -11,6 +11,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class UInventoryComponent;
+class UVitalsComponent;
 
 UCLASS()
 class INVENTORYANDCRAFTING_API AAwesomeBaseCharacter : public ACharacter, public IInteractionInterface
@@ -31,6 +32,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UInventoryComponent* InventoryComponent;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UVitalsComponent* VitalsComponent;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UAnimMontage* SwapWeaponsMontage;
